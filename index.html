@@ -1156,7 +1156,7 @@
                 deck.push(createCardInstance('Bayinnaung', theme));
                 deck.push(createCardInstance('001 Adam', theme));
                 deck.push(createCardInstance('Socrates', theme));
-                for(let i=0;i<2;i++) deck.push(createCardInstance('Simo Häyhä', theme));
+                deck.push(createCardInstance('Simo Häyhä', theme));
                 deck.push(createCardInstance('Julius Caesar', theme));
                 deck.push(createCardInstance('Nikola Tesla', theme));
                 deck.push(createCardInstance('Leonidas I', theme));
@@ -3499,23 +3499,6 @@ function tickTempBuffs(playerKey) {
                 });
             }
 
-            // Exo Skeleton Suit: If equipped to Soldier, get another item from deck
-            if (card.items && effectiveName === 'Soldier') {
-                const hasExo = card.items.some(item => item.name === 'Exo Skeleton Suit');
-                if (hasExo) {
-                    const itemCards = p.deck.filter(c => c.type === 'Item');
-                    if (itemCards.length > 0) {
-                        const randItem = itemCards[Math.floor(Math.random() * itemCards.length)];
-                        const deckIdx = p.deck.findIndex(c => c.id === randItem.id);
-                        if (deckIdx !== -1) {
-                            const newItem = p.deck.splice(deckIdx, 1)[0];
-                            card.items.push(newItem);
-                            log(`🤖 [Exo Skeleton Suit] Soldier ได้รับ ${newItem.name} จากสำรับ!`, 'text-cyan-400 font-bold');
-                        }
-                    }
-                }
-            }
-
             // B-2 Spirit: Destroy field on summon
             if (card.items) {
                 card.items.forEach(item => {
@@ -4285,22 +4268,23 @@ function tickTempBuffs(playerKey) {
             // === NEW HUMANITY ACTION CARDS ===
             else if (card.name === 'Normandy Landings') {
                 log(`[Action] Normandy Landings! อัญเชิญ Character cost 3+ จากเด็ค 2 ตัว!`, 'text-blue-400 font-bold');
-                let summoned = 0;
-                const candidates = p.deck.filter(c => c.type === 'Character' && c.cost >= 3);
-                for (let i = 0; i < 2 && summoned < 2 && p.field.length < getMaxFieldSlots(playerKey) && candidates.length > 0; i++) {
+                let summonedCount = 0;
+                for (let i = 0; i < 2 && summonedCount < 2 && p.field.length < getMaxFieldSlots(playerKey); i++) {
+                    const candidates = p.deck.filter(c => c.type === 'Character' && c.cost >= 3);
+                    if (candidates.length === 0) break;
                     const randIdx = Math.floor(Math.random() * candidates.length);
                     const selected = candidates[randIdx];
                     const deckIdx = p.deck.findIndex(d => d.id === selected.id);
                     if (deckIdx !== -1) {
-                        const summoned = p.deck.splice(deckIdx, 1)[0];
-                        summoned.atk += 1;
-                        summoned.maxHp += 1;
-                        summoned.hp += 1;
-                        summoned.attacksLeft = summoned.maxAttacks || 1;
-                        p.field.push(summoned);
-                        log(`[Normandy] อัญเชิญ ${summoned.name} (+1 ATK/+1 HP)!`, 'text-blue-300');
-                        triggerOnSummon(summoned, playerKey);
-                        summoned++;
+                        const s = p.deck.splice(deckIdx, 1)[0];
+                        s.atk += 1;
+                        s.maxHp += 1;
+                        s.hp += 1;
+                        s.attacksLeft = s.maxAttacks || 1;
+                        p.field.push(s);
+                        log(`[Normandy] อัญเชิญ ${s.name} (+1 ATK/+1 HP)!`, 'text-blue-300');
+                        triggerOnSummon(s, playerKey);
+                        summonedCount++;
                     }
                 }
             }
@@ -4421,6 +4405,22 @@ function tickTempBuffs(playerKey) {
 
             if (p.cost < costToPay) return;
             if (card.type === 'Character' && p.field.length >= getMaxFieldSlots(playerKey)) return;
+
+            // Colosseum: ถ้าฝั่งใดฝั่งหนึ่งมี Colosseum → ทั้งสองฝั่ง max 1 Character
+            if (card.type === 'Character') {
+                const oppKey = playerKey === 'player' ? 'ai' : 'player';
+                const myHasCol = p.fieldCard && p.fieldCard.name === 'Colosseum';
+                const oppHasCol = state.players[oppKey].fieldCard && state.players[oppKey].fieldCard.name === 'Colosseum';
+                if (myHasCol || oppHasCol) {
+                    const existingChars = p.field.filter(c => c.type === 'Character' && getCharStats(c).hp > 0);
+                    if (existingChars.length >= 1) {
+                        if (playerKey === 'player' || gameMode === 'local' || (gameMode === 'online' && myRole === 'ai' && playerKey === 'ai')) {
+                            alert('⚔️ [Colosseum] ไม่สามารถลงการ์ดได้! ต้องรอให้ตัวละครในสนามตายก่อน');
+                        }
+                        return;
+                    }
+                }
+            }
 
             if (card.type === 'Action' && state.actionPlayedThisTurn) {
                 if (playerKey === 'player' || gameMode === 'local' || (gameMode === 'online' && myRole === 'ai' && playerKey === 'ai')) {
@@ -4600,24 +4600,6 @@ function tickTempBuffs(playerKey) {
                 card.attacksLeft = card.maxAttacks; 
                 p.field.push(card);
                 log(`${playerKey.toUpperCase()} ลงการ์ด ${card.name} (Cost: ${costToPay})`, 'text-green-300');
-                // Colosseum: ถ้า active → max 1 character → คืนตัวที่มีอยู่กลับมือ
-                if (card.type === 'Character' && p.fieldCard && p.fieldCard.name === 'Colosseum') {
-                    const chars = p.field.filter(c => c.type === 'Character');
-                    if (chars.length > 1) {
-                        // คืนทุกตัวยกเว้นตัวล่าสุด (ที่เพิ่งลง)
-                        const toReturn = chars.slice(0, chars.length - 1);
-                        toReturn.forEach(ret => {
-                            const fi = p.field.findIndex(c => c.id === ret.id);
-                            if (fi !== -1) {
-                                p.field.splice(fi, 1);
-                                ret.costReducer = ret.cost;
-                                ret.attacksLeft = 0;
-                                p.hand.push(ret);
-                                log(`[Colosseum] ${ret.name} คืนสู่มือ (Cost 0)`, 'text-amber-300');
-                            }
-                        });
-                    }
-                }
                 triggerOnSummon(card, playerKey);
             }
             
@@ -4698,6 +4680,25 @@ function tickTempBuffs(playerKey) {
                 if (card.name === 'Escutcheon') {
                     targetChar.escutcheonTurns = 2;
                     log(`[Escutcheon] Untargetable 1 เทิร์น!`, 'text-gray-300');
+                }
+
+                // Exo Skeleton Suit: ถ้าใส่ให้ Soldier → สุ่มหยิบ Item จาก deck อีก 1 ใบ equip ให้ Soldier
+                if (card.name === 'Exo Skeleton Suit') {
+                    const targetEffName = (targetChar.name.startsWith('Shadow Token') || targetChar.name.startsWith('Shadow army') || targetChar.name.includes('Loki Clone')) ? targetChar.originalName : targetChar.name;
+                    if (targetEffName === 'Soldier') {
+                        const itemCards = p.deck.filter(c => c.type === 'Item');
+                        if (itemCards.length > 0) {
+                            const randItem = itemCards[Math.floor(Math.random() * itemCards.length)];
+                            const deckIdx = p.deck.findIndex(c => c.id === randItem.id);
+                            if (deckIdx !== -1) {
+                                const newItem = p.deck.splice(deckIdx, 1)[0];
+                                targetChar.items.push(newItem);
+                                log(`🤖 [Exo Skeleton Suit] Soldier ได้รับ ${newItem.name} จากสำรับโดยอัตโนมัติ!`, 'text-cyan-400 font-bold');
+                            }
+                        } else {
+                            log(`🤖 [Exo Skeleton Suit] ไม่มี Item ในสำรับ`, 'text-cyan-600');
+                        }
+                    }
                 }
 
                 if (card.name === "Genie's Lamp") {
@@ -4953,6 +4954,15 @@ if (symbolBlock && actualTarget.id !== symbolBlock.id) {
 
                 if (actualTarget.escutcheonTurns > 0) {
                     log(`[Escutcheon] ${actualTarget.name} ถูกป้องกันการโจมตี!`, 'text-gray-400');
+                    attacker.attacksLeft += 1;
+                    state.selectedCardId = null;
+                    updateUI();
+                    return;
+                }
+
+                // F-35: Untargetable ขณะมี F-35 equipped
+                if (!isItemSuppressed() && actualTarget.items && actualTarget.items.some(i => i.name === 'F-35')) {
+                    log(`✈️ [F-35] ${actualTarget.name} ไม่สามารถถูกโจมตีได้! (Untargetable)`, 'text-sky-400 font-bold');
                     attacker.attacksLeft += 1;
                     state.selectedCardId = null;
                     updateUI();
@@ -5542,8 +5552,13 @@ if (symbolBlock && actualTarget.id !== symbolBlock.id) {
                 log(`⚽ [Messi] ฆ่าได้ (${attacker.messiKillCount}/3) → โจมตีต่อได้`, 'text-green-300 font-bold');
                 if (attacker.messiKillCount >= 3) {
                     attacker.messiKillCount = 0; // reset นับใหม่รอบถัดไป
-                    attacker.atk *= 2;
-                    log(`⚽ [Messi] ฆ่าครบ 3 ตัว! DMG x2 ถาวร! (ATK ตอนนี้ ${attacker.atk})`, 'text-green-200 font-bold');
+                    if (!attacker.messiDamageDoubled) {
+                        attacker.messiDamageDoubled = true;
+                        attacker.atk *= 2;
+                        log(`⚽ [Messi] ฆ่าครบ 3 ตัว! DMG x2 ถาวร! (ATK ตอนนี้ ${attacker.atk})`, 'text-green-200 font-bold');
+                    } else {
+                        log(`⚽ [Messi] ฆ่าครบ 3 ตัวอีกครั้ง! (DMG x2 ถาวรแล้ว)`, 'text-green-300 font-bold');
+                    }
                 }
                 }
             }
@@ -5602,8 +5617,7 @@ if (symbolBlock && actualTarget.id !== symbolBlock.id) {
                 }
 
                 if ((c.immortalTurns || 0) > 0 && getCharStats(c).hp <= 0) {
-                    // Immortal: รอดตาย แต่ไม่เด้งกลับเป็น HP เต็ม
-                    c.immortalTurns--;
+                    // Immortal: รอดตาย — ไม่ decrement ที่นี่ (decrement ใน resolveEndPhase เท่านั้น)
                     c.hp = 1;
                     log(`Immortal: รอดตาย! (เหลือ ${c.immortalTurns} เทิร์น, HP -> 1)`, 'text-emerald-400 font-bold');
                     continue;
@@ -7154,6 +7168,8 @@ if (symbolBlock && actualTarget.id !== symbolBlock.id) {
                 const alive = enemyField.filter(x=>getCharStats(x).hp>0);
                 if (eff==='Sinon' && alive.length>1) return false;
                 if (eff==='King'  && alive.length>1) return false;
+                // F-35: Untargetable
+                if (!isItemSuppressed() && c.items && c.items.some(i => i.name === 'F-35')) return false;
                 return getCharStats(c).hp>0;
             });
             if (!targetable.length) return null;
@@ -7482,12 +7498,13 @@ if (symbolBlock && actualTarget.id !== symbolBlock.id) {
                         const effName = (c.name.startsWith('Shadow Token') || c.name.startsWith('Shadow army') || c.name.includes('Loki Clone')) ? c.originalName : c.name;
                         const isShionProtected = effName === 'Sinon' && oppP.field.length > 1;
                         const isKingProtected  = effName === 'King'  && oppP.field.filter(cc => getCharStats(cc).hp > 0).length > 1;
-                        if (!isShionProtected && !isKingProtected) {
+                        const isF35Untargetable = !isItemSuppressed() && c.items && c.items.some(i => i.name === 'F-35');
+                        if (!isShionProtected && !isKingProtected && !isF35Untargetable) {
                             el.classList.add('cursor-crosshair', 'hover:border-red-500', 'border-2', 'border-transparent');
                             el.onclick = () => initiateAttack(state.selectedCardId, c.id, false);
                         } else {
                             el.style.opacity = '0.7';
-                            el.title = isShionProtected ? 'Sinon ถูกปกป้อง!' : 'King เป็นเป้าหมายสุดท้าย!';
+                            el.title = isF35Untargetable ? '✈️ F-35 Untargetable!' : isShionProtected ? 'Sinon ถูกปกป้อง!' : 'King เป็นเป้าหมายสุดท้าย!';
                         }
                     }
                 }
