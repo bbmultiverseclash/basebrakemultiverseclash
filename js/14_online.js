@@ -58,16 +58,16 @@ function selectMode(mode) {
         btn.style.borderColor = active ? (m === 'chaos' ? '#f87171' : (map[m] ? map[m][0] : 'white')) : 'transparent';
     });
     
-    document.getElementById('online-panel')?.style.display = (mode === 'online' || mode === 'draft') ? 'flex' : 'none';
+    { const _el = document.getElementById('online-panel'); if (_el) _el.style.display = (mode === 'online' || mode === 'draft') ? 'flex' : 'none'; }
     
     if (mode === 'draft') {
         document.getElementById('player-theme').parentElement.style.display = 'none';
-        document.getElementById('p2-theme-div')?.style.display = 'none';
-        document.getElementById('p2-theme-online')?.style.display = 'none';
+        { const _el = document.getElementById('p2-theme-div'); if (_el) _el.style.display = 'none'; }
+        { const _el = document.getElementById('p2-theme-online'); if (_el) _el.style.display = 'none'; }
     } else {
         document.getElementById('player-theme').parentElement.style.display = 'block';
-        document.getElementById('p2-theme-div')?.style.display = (mode === 'online') ? 'none' : 'block';
-        document.getElementById('p2-theme-online')?.style.display = (mode === 'online' && document.getElementById('room-id-input').value.trim()) ? 'block' : 'none';
+        { const _el = document.getElementById('p2-theme-div'); if (_el) _el.style.display = (mode === 'online') ? 'none' : 'block'; }
+        { const _el = document.getElementById('p2-theme-online'); if (_el) _el.style.display = (mode === 'online' && document.getElementById('room-id-input').value.trim()) ? 'block' : 'none'; }
     }
 }
 selectMode('ai');
@@ -118,13 +118,13 @@ async function startOnlineGame() {
                 setOnlineStatus('🎮 เพื่อนเข้าแล้ว! กำลังเริ่ม...', '#4ade80');
 
                 if (gameMode === 'draft') {
-                    document.getElementById('theme-selector')?.style.display = 'none';
+                    { const _el = document.getElementById('theme-selector'); if (_el) _el.style.display = 'none'; }
                     startDraftPhase();
                     listenForP2Actions();
                 } else {
                     db.ref('rooms/' + onlineRoomId + '/gameReady').set(sessionToken).then(() => {
-                        document.getElementById('theme-selector')?.style.display = 'none';
-                        document.getElementById('chat-box')?.style.display = 'block';
+                        { const _el = document.getElementById('theme-selector'); if (_el) _el.style.display = 'none'; }
+                        { const _el = document.getElementById('chat-box'); if (_el) _el.style.display = 'block'; }
                         db.ref('rooms/' + onlineRoomId + '/logs').remove();
                         db.ref('rooms/' + onlineRoomId + '/chat').remove();
                         db.ref('rooms/' + onlineRoomId + '/p2mulligan').remove();
@@ -167,7 +167,7 @@ async function startOnlineGame() {
         });
 
         if (gameMode === 'draft') {
-            document.getElementById('theme-selector')?.style.display = 'none';
+            { const _el = document.getElementById('theme-selector'); if (_el) _el.style.display = 'none'; }
             setOnlineStatus('🃏 Draft กำลังเริ่ม...', '#818cf8');
             listenForDraftState();
         } else {
@@ -185,8 +185,8 @@ async function startOnlineGame() {
             // ถ้าเป็น draft mode P2 ต้องปิด overlay แล้วเริ่มเกมด้วย
             if (gameMode === 'draft') {
                 db.ref('rooms/' + onlineRoomId + '/draftState').off();
-                document.getElementById('draft-overlay')?.style.display = 'none';
-                document.getElementById('chat-box')?.style.display = 'block';
+                { const _el = document.getElementById('draft-overlay'); if (_el) _el.style.display = 'none'; }
+                { const _el = document.getElementById('chat-box'); if (_el) _el.style.display = 'block'; }
                 setOnlineStatus('🎮 Draft จบ! กำลังเริ่มเกม...', '#4ade80');
                 // P2 ดึง deck ที่ดราฟต์ไว้จาก Firebase
                 db.ref('rooms/' + onlineRoomId + '/draftResult').get().then(drSnap => {
@@ -205,8 +205,8 @@ async function startOnlineGame() {
             }
 
             setOnlineStatus('🎮 เกมเริ่มแล้ว!', '#4ade80');
-            document.getElementById('theme-selector')?.style.display = 'none';
-            document.getElementById('chat-box')?.style.display = 'block';
+            { const _el = document.getElementById('theme-selector'); if (_el) _el.style.display = 'none'; }
+            { const _el = document.getElementById('chat-box'); if (_el) _el.style.display = 'block'; }
 
             listenForStateFromHost();
             listenForLogs();
@@ -607,7 +607,7 @@ function listenForDraftState() {
     db.ref('rooms/' + onlineRoomId + '/draftState').on('value', snap => {
         const ds = snap.val();
         if (!ds) {
-            document.getElementById('draft-overlay')?.style.display = 'none';
+            { const _el = document.getElementById('draft-overlay'); if (_el) _el.style.display = 'none'; }
             return;
         }
         draftState = ds;
@@ -755,7 +755,7 @@ function finalizeDraftAndStartGame() {
     draftedP2Deck = draftState.p2Deck || [];
 
     db.ref('rooms/' + onlineRoomId + '/draftState').off();
-    document.getElementById('draft-overlay')?.style.display = 'none';
+    { const _el = document.getElementById('draft-overlay'); if (_el) _el.style.display = 'none'; }
 
     // เก็บ deck ลง Firebase ให้ P2 ดึงไปใช้ด้วย
     db.ref('rooms/' + onlineRoomId + '/draftResult').set({
@@ -763,7 +763,7 @@ function finalizeDraftAndStartGame() {
         p2Deck: draftedP2Deck
     }).then(() => {
         db.ref('rooms/' + onlineRoomId + '/gameReady').set(sessionToken).then(() => {
-            document.getElementById('chat-box')?.style.display = 'block';
+            { const _el = document.getElementById('chat-box'); if (_el) _el.style.display = 'block'; }
             db.ref('rooms/' + onlineRoomId + '/logs').remove();
             db.ref('rooms/' + onlineRoomId + '/chat').remove();
             db.ref('rooms/' + onlineRoomId + '/p2mulligan').remove();
