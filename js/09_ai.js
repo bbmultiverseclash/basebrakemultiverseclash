@@ -13,34 +13,7 @@ const AI_SYNERGY = [
     ['Rama','The Arrow of Brahma'], ['Fairy','Nature Realm Wand'], ['Sun Wukong','Ruyi Jingu'],
     ['Thor','Mjolnir'], ['Hercules','Bloody Fang'], ['Jormungandr','Holy Grail'],
     // ── Suankularb ──
-    ['Phatchee','
-                setTimeout(() => nextPhase(), 800);
-            }
-        };
-        setTimeout(playNext, 600);
-
-    } else if (state.phase === 'BATTLE') {
-        if (state.totalTurns<=1) { setTimeout(()=>nextPhase(),800); return; }
-
-        const processAIAttack = () => {
-            if (state.phase!=='BATTLE' || state.currentTurn!=='ai') return;
-            
-            // Use Minimax to find the best attack (Depth 2)
-            const result = minimaxAttack(state, 2, -Infinity, Infinity, true);
-
-            if (result && result.move) {
-                initiateAttack(result.move.attackerId, result.move.targetId, result.move.isBase);
-                setTimeout(processAIAttack, 750);
-            } else {
-                // Exhaust remaining attackers and end turn
-                state.players.ai.field.forEach(c => c.attacksLeft = 0);
-                setTimeout(()=>nextPhase(),700);
-            }
-        };
-        setTimeout(processAIAttack, 500);
-    }
-}
-Teak'],
+    ['Phatchee','Teak'],
     // ── Toy Trooper ──
     ['Majorette','Hot Wheel'], ['Teddy Bear','Toy Soldier'], ['Toy-Rex','Toy Box Surprise'],
     // ── Animal Kingdom ──
@@ -258,7 +231,14 @@ function minimaxAttack(st, depth, alpha, beta, isMaximizing) {
     const attacker = attackers[0]; // Try the first available attacker
     
     // Possible targets: enemy characters + enemy base
-    const targets = [...pl.field.filter(c => getCharStats(c).hp > 0), 'base'];
+    const tauntChars = pl.field.filter(c => getCharStats(c).hp > 0 && c.text && c.text.toLowerCase().includes('taunt'));
+    let targets = [];
+    if (tauntChars.length > 0) {
+        targets = [...tauntChars];
+    } else {
+        targets = [...pl.field.filter(c => getCharStats(c).hp > 0), 'base'];
+    }
+    
     let validMovesFound = false;
 
     for (let target of targets) {
@@ -332,3 +312,50 @@ function playAI() {
                 }
                 setTimeout(playNext, 700);
             } else {
+                setTimeout(() => nextPhase(), 800);
+            }
+        };
+        setTimeout(playNext, 600);
+
+    } else if (state.phase === 'BATTLE') {
+        if (state.totalTurns<=1) { setTimeout(()=>nextPhase(),800); return; }
+
+        let failedAttempts = 0;
+        let lastMoveStr = "";
+
+        const processAIAttack = () => {
+            if (state.phase!=='BATTLE' || state.currentTurn!=='ai') return;
+            
+            // Use Minimax to find the best attack (Depth 2)
+            const result = minimaxAttack(state, 2, -Infinity, Infinity, true);
+
+            if (result && result.move) {
+                const moveStr = `${result.move.attackerId}->${result.move.targetId}`;
+                if (moveStr === lastMoveStr) {
+                    failedAttempts++;
+                } else {
+                    failedAttempts = 0;
+                    lastMoveStr = moveStr;
+                }
+
+                if (failedAttempts > 2) {
+                    // We are stuck in an infinite loop trying the same invalid move.
+                    // Force the attacker to stop.
+                    const attacker = state.players.ai.field.find(c => c.id === result.move.attackerId);
+                    if (attacker) attacker.attacksLeft = 0;
+                    failedAttempts = 0;
+                    setTimeout(processAIAttack, 50);
+                    return;
+                }
+
+                initiateAttack(result.move.attackerId, result.move.targetId, result.move.isBase);
+                setTimeout(processAIAttack, 750);
+            } else {
+                // Exhaust remaining attackers and end turn
+                state.players.ai.field.forEach(c => c.attacksLeft = 0);
+                setTimeout(()=>nextPhase(),700);
+            }
+        };
+        setTimeout(processAIAttack, 500);
+    }
+}
