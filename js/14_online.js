@@ -657,6 +657,7 @@ function renderDraftUI() {
         const cardInst = createCardInstance(cData.name, cData.theme);
         if (!cardInst) return; // null-check ป้องกัน crash
         const el = renderCard(cardInst, true, cardInst.cost);
+        if (!el) return; // [FIX] null-check ป้องกัน renderCard คืน null แล้ว crash
         el.style.position = 'relative';
         el.style.transform = 'scale(0.95)';
         el.style.flexShrink = '0';
@@ -771,4 +772,4 @@ function finalizeDraftAndStartGame() {
         });
     });
 }
-    
+    </script>
