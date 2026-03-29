@@ -13,7 +13,34 @@ const AI_SYNERGY = [
     ['Rama','The Arrow of Brahma'], ['Fairy','Nature Realm Wand'], ['Sun Wukong','Ruyi Jingu'],
     ['Thor','Mjolnir'], ['Hercules','Bloody Fang'], ['Jormungandr','Holy Grail'],
     // ── Suankularb ──
-    ['Phatchee','Teak'],
+    ['Phatchee','
+                setTimeout(() => nextPhase(), 800);
+            }
+        };
+        setTimeout(playNext, 600);
+
+    } else if (state.phase === 'BATTLE') {
+        if (state.totalTurns<=1) { setTimeout(()=>nextPhase(),800); return; }
+
+        const processAIAttack = () => {
+            if (state.phase!=='BATTLE' || state.currentTurn!=='ai') return;
+            
+            // Use Minimax to find the best attack (Depth 2)
+            const result = minimaxAttack(state, 2, -Infinity, Infinity, true);
+
+            if (result && result.move) {
+                initiateAttack(result.move.attackerId, result.move.targetId, result.move.isBase);
+                setTimeout(processAIAttack, 750);
+            } else {
+                // Exhaust remaining attackers and end turn
+                state.players.ai.field.forEach(c => c.attacksLeft = 0);
+                setTimeout(()=>nextPhase(),700);
+            }
+        };
+        setTimeout(processAIAttack, 500);
+    }
+}
+Teak'],
     // ── Toy Trooper ──
     ['Majorette','Hot Wheel'], ['Teddy Bear','Toy Soldier'], ['Toy-Rex','Toy Box Surprise'],
     // ── Animal Kingdom ──
@@ -232,27 +259,33 @@ function minimaxAttack(st, depth, alpha, beta, isMaximizing) {
     
     // Possible targets: enemy characters + enemy base
     const targets = [...pl.field.filter(c => getCharStats(c).hp > 0), 'base'];
+    let validMovesFound = false;
 
     for (let target of targets) {
         const nextState = cloneState(st);
         const nAi = nextState.players.ai;
         const nPl = nextState.players.player;
         const nAttacker = nAi.field.find(c => c.id === attacker.id);
+        
+        if (!nAttacker) continue;
         nAttacker.attacksLeft -= 1;
 
         if (target === 'base') {
             const hasBlocker = nPl.field.some(c => getCharStats(c).hp > 0 && !c.status.includes('Levitate'));
             if (!hasBlocker) {
                 nPl.hp -= 1;
+                validMovesFound = true;
             } else {
                 continue; // Invalid move
             }
         } else {
             const nTarget = nPl.field.find(c => c.id === target.id);
+            if (!nTarget) continue;
             nTarget.hp -= getCharStats(nAttacker).atk;
             if (nTarget.hp <= 0) {
                 nPl.field = nPl.field.filter(c => c.id !== nTarget.id);
             }
+            validMovesFound = true;
         }
 
         const eval = minimaxAttack(nextState, depth - 1, alpha, beta, false).score;
@@ -262,6 +295,10 @@ function minimaxAttack(st, depth, alpha, beta, isMaximizing) {
         }
         alpha = Math.max(alpha, eval);
         if (beta <= alpha) break;
+    }
+
+    if (!validMovesFound) {
+        return { score: aiBoardScore(st), move: null };
     }
 
     return { score: maxEval, move: bestMove };
@@ -295,29 +332,3 @@ function playAI() {
                 }
                 setTimeout(playNext, 700);
             } else {
-                setTimeout(() => nextPhase(), 800);
-            }
-        };
-        setTimeout(playNext, 600);
-
-    } else if (state.phase === 'BATTLE') {
-        if (state.totalTurns<=1) { setTimeout(()=>nextPhase(),800); return; }
-
-        const processAIAttack = () => {
-            if (state.phase!=='BATTLE' || state.currentTurn!=='ai') return;
-            
-            // Use Minimax to find the best attack (Depth 2)
-            const result = minimaxAttack(state, 2, -Infinity, Infinity, true);
-
-            if (result.move) {
-                initiateAttack(result.move.attackerId, result.move.targetId, result.move.isBase);
-                setTimeout(processAIAttack, 750);
-            } else {
-                // Exhaust remaining attackers
-                state.players.ai.field.forEach(c => c.attacksLeft = 0);
-                setTimeout(()=>nextPhase(),700);
-            }
-        };
-        setTimeout(processAIAttack, 500);
-    }
-}
