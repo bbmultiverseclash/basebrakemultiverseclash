@@ -521,4 +521,4 @@ function getMaxCardId(s) {
     return max;
 }
 
-    </script>
+   
