@@ -739,4 +739,4 @@ function finalizeDraftAndStartGame() {
     });
 }
 
-    </script>
+    
