@@ -808,9 +808,13 @@ function tickTempBuffs(playerKey) {
         document.getElementById('btn-cancel-target').onclick = cancelTargeting;
 
         function nextPhase() {
-            // Online P2: ส่ง action ให้ host execute
-            if (gameMode === 'online' && myRole === 'ai' && state.currentTurn === 'ai') {
+            // Online/Draft P2: ส่ง action ให้ host execute เท่านั้น
+            if ((gameMode === 'online' || gameMode === 'draft') && myRole === 'ai' && state.currentTurn === 'ai') {
                 sendOnlineAction({ type: 'nextPhase' }); return;
+            }
+            // ป้องกัน P1 กดจบเทิร์นตอนไม่ใช่ตาตัวเอง
+            if ((gameMode === 'online' || gameMode === 'draft') && myRole === 'player' && state.currentTurn !== 'player') {
+                return;
             }
             if (state.targeting.active) cancelTargeting();
             state.selectedCardId = null;
