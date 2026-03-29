@@ -810,4 +810,4 @@ function finalizeDraftAndStartGame() {
         });
     });
 }
-    </script>
+
