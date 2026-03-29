@@ -748,14 +748,28 @@ function tickTempBuffs(playerKey) {
             }
         }
 
+        function buildDraftedDeck(draftData) {
+            let deck = [];
+            draftData.forEach(c => {
+                const instance = createCardInstance(c.name, c.theme);
+                if (instance) deck.push(instance);
+            });
+            return deck.sort(() => Math.random() - 0.5);
+        }
+
         function initGame() {
-            state.players.player.deck = buildDeck(selectedPlayerTheme);
-            state.players.ai.deck = buildDeck(selectedAITheme);
+            if (gameMode === 'draft') {
+                state.players.player.deck = buildDraftedDeck(draftedP1Deck);
+                state.players.ai.deck = buildDraftedDeck(draftedP2Deck);
+            } else {
+                state.players.player.deck = buildDeck(selectedPlayerTheme);
+                state.players.ai.deck = buildDeck(selectedAITheme);
+            }
             
             drawCard('player', 5);
             drawCard('ai', 5);
-            // offer mulligan ให้ P1 เสมอ (online: หลัง mulligan P1 เสร็จค่อยส่ง signal P2)
             setTimeout(() => offerMulligan('player'), 600);
+            
             state.players.player.cost = 3;
             state.players.ai.cost = 3;
             state.players.player.moonCycle = 0;
@@ -766,17 +780,22 @@ function tickTempBuffs(playerKey) {
             state.players.ai.poseidonPermanentReduce = false;
             
             log("เริ่มเกม! BASE BREAK: Multiverse Clash", "text-yellow-400");
-            log(`ธีมผู้เล่น: ${selectedPlayerTheme} | ธีมฝั่งตรงข้าม: ${selectedAITheme}`, "text-yellow-300");
-            log(`โหมด: ${isChaosMode ? '💥 CHAOS MODE' : gameMode === 'ai' ? 'VS AI' : 'Hotseat'}`);
+            if (gameMode !== 'draft') {
+                log(`ธีมผู้เล่น: ${selectedPlayerTheme} | ธีมฝั่งตรงข้าม: ${selectedAITheme}`, "text-yellow-300");
+            } else {
+                log(`โหมด: 🃏 DRAFT DUEL (60 Cards)`, "text-indigo-400 font-bold");
+            }
+            log(`โหมด: ${isChaosMode ? '💥 CHAOS MODE' : gameMode === 'ai' ? 'VS AI' : gameMode === 'draft' ? 'Online Draft' : 'Hotseat'}`);
+            
             if (isChaosMode) {
                 let b = document.getElementById('chaos-badge');
                 if (!b) { b = document.createElement('div'); b.id = 'chaos-badge'; b.style.cssText = 'position:fixed;top:58px;left:50%;transform:translateX(-50%);background:#7c1d1d;color:#fca5a5;padding:3px 18px;border-radius:20px;font-weight:800;font-size:13px;z-index:300;pointer-events:none;letter-spacing:1px;'; b.innerText = '💥 CHAOS MODE — Cost ∞'; document.body.appendChild(b); }
             } else {
                 const b = document.getElementById('chaos-badge'); if (b) b.remove();
             }
+            
             startBGMForGame();
             startPhase('MAIN');
-            // เริ่มเทิร์นแรก: Mozart ได้ +1 Note
             mozartAddNotes('player', 1, 'เริ่มเทิร์น');
         }
 
@@ -1592,4 +1611,3 @@ function tickTempBuffs(playerKey) {
                 }
             });
         }
-
