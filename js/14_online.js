@@ -607,7 +607,8 @@ function listenForDraftState() {
     db.ref('rooms/' + onlineRoomId + '/draftState').on('value', snap => {
         const ds = snap.val();
         if (!ds) {
-            document.getElementById('draft-overlay').style.display = 'none';
+            const overlay = document.getElementById('draft-overlay');
+            if (overlay) overlay.style.display = 'none';
             return;
         }
         draftState = ds;
