@@ -1,7 +1,7 @@
 // ============================================================
 // 02_state.js — Global game state & session stat trackers
 // ============================================================
-
+ 
         let state = {
             totalTurns: 1,
             currentTurn: 'player', 
@@ -18,12 +18,12 @@
                 ai: { hp: 20, cost: 3, deck: [], hand: [], field: [], graveyard: [], spaceZone: [], moonCycle: 0, apotheosisTurns: 0, poseidonPermanentReduce: false, poseidonReduceTurns: 0 }
             }
         };
-
+ 
         let selectedPlayerTheme = "isekai_adventure";
         let selectedAITheme = "isekai_adventure";
         let gameMode = "ai";
         let isChaosMode = false; // Chaos Mode flag
-
+ 
         // ── Session Stats Tracker ─────────────────────────────────
         let sessionStats = {
             damageDealt: 0, damageToChars: 0, kills: 0,
@@ -65,12 +65,12 @@
             if (!entries.length) return null;
             return entries.sort((a,b) => b[1]-a[1])[0];
         }
-
+ 
         function getMaxFieldSlots(playerKey) {
             if (state.sharedFieldCard && state.sharedFieldCard.name === 'Colosseum') return 1;
             return (state.sharedFieldCard && state.sharedFieldCard.name === 'Chess Board' && state.sharedFieldCardOwner === playerKey) ? 6 : 5;
         }
-
+ 
         // Resolve ชื่อจริงของการ์ด — รองรับ Shadow/Loki Clone และ Rimuru stolen ability
         function getEffectiveName(c) {
             if (c.name.startsWith('Shadow Token') || c.name.startsWith('Shadow army') || c.name.includes('Loki Clone')) return c.originalName || c.name;
@@ -78,4 +78,7 @@
             if (c.name.startsWith('LEGO ') && c.originalName) return c.originalName; // LEGO copy ใช้ originalName
             return c.name;
         }
-
+ 
+        let draftedP1Deck = [];
+        let draftedP2Deck = [];
+ 
