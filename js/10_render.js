@@ -44,8 +44,8 @@
 
             const btn = document.getElementById('btn-next-phase');
             let showBtn;
-            if (gameMode === 'online') {
-                // P1 Host
+            if (gameMode === 'online' || gameMode === 'draft') {
+                // P1 Host: แสดงปุ่มเฉพาะตาของ player เท่านั้น
                 showBtn = !state.targeting.active && state.currentTurn === 'player';
             } else if (gameMode === 'ai') {
                 showBtn = !state.targeting.active && state.currentTurn === 'player';
@@ -63,9 +63,9 @@
         function renderHand() {
             const handZone = document.getElementById('player-hand');
             handZone.innerHTML = '';
-            // online P2 ใช้ key 'ai' แต่ต้องเห็นมือตัวเอง
+            // online/draft P2 ใช้ key 'ai' แต่ต้องเห็นมือตัวเอง
             let handPlayerKey;
-            if (gameMode === 'online') {
+            if (gameMode === 'online' || gameMode === 'draft') {
                 handPlayerKey = myRole; // 'player' หรือ 'ai'
             } else if (gameMode === 'local') {
                 handPlayerKey = state.currentTurn;
