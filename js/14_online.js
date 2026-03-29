@@ -563,7 +563,39 @@ function getMaxCardId(s) {
 // ================================================================
 let draftState = null;
 
+function createDraftOverlay() {
+    if (document.getElementById('draft-overlay')) return; // ป้องกันสร้างซ้ำ
+    const overlay = document.createElement('div');
+    overlay.id = 'draft-overlay';
+    overlay.style.cssText = [
+        'position:fixed','inset:0','z-index:9999',
+        'background:rgba(0,0,0,0.92)',
+        'display:flex','flex-direction:column',
+        'align-items:center','justify-content:flex-start',
+        'padding:24px 16px','gap:12px','overflow-y:auto'
+    ].join(';');
+
+    overlay.innerHTML = `
+        <div style="width:100%;max-width:900px;display:flex;flex-direction:column;align-items:center;gap:12px;">
+            <div style="font-size:1.6rem;font-weight:900;color:#a78bfa;letter-spacing:2px;text-transform:uppercase;text-shadow:0 0 20px #7c3aed;">
+                ⚔️ DRAFT DUEL ⚔️
+            </div>
+            <div id="draft-status" style="font-size:1rem;font-weight:700;padding:8px 24px;border-radius:9999px;border:2px solid #4ade80;background:rgba(20,83,45,0.5);color:#4ade80;text-align:center;"></div>
+            <div style="display:flex;gap:24px;justify-content:center;">
+                <div id="draft-p1-count" style="display:flex;flex-direction:column;align-items:center;gap:2px;background:rgba(74,222,128,0.1);border:1px solid #4ade80;border-radius:12px;padding:8px 20px;color:#4ade80;"></div>
+                <div id="draft-p2-count" style="display:flex;flex-direction:column;align-items:center;gap:2px;background:rgba(248,113,113,0.1);border:1px solid #f87171;border-radius:12px;padding:8px 20px;color:#f87171;"></div>
+            </div>
+            <div style="font-size:0.75rem;color:#6b7280;text-align:center;">
+                🟥 = แบน &nbsp;|&nbsp; 🟩 P1 เลือก &nbsp;|&nbsp; 🟥 P2 เลือก &nbsp;|&nbsp; คลิกการ์ดเมื่อถึงตาคุณ
+            </div>
+            <div id="draft-pool" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;width:100%;"></div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
+
 function startDraftPhase() {
+    createDraftOverlay();
     draftState = {
         round: 1,
         step: 0,
@@ -604,6 +636,7 @@ function generateDraftPool() {
 }
 
 function listenForDraftState() {
+    createDraftOverlay();
     db.ref('rooms/' + onlineRoomId + '/draftState').on('value', snap => {
         const ds = snap.val();
         if (!ds) {
@@ -777,4 +810,4 @@ function finalizeDraftAndStartGame() {
         });
     });
 }
-    
+    </script>
