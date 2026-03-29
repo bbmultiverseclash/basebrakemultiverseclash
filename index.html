@@ -155,7 +155,7 @@
     </style>
 </head>
 <body class="min-h-screen flex flex-col overflow-y-auto">
-
+ 
 <!-- ================================================================ -->
 <!-- LOGIN OVERLAY                                                      -->
 <!-- ================================================================ -->
@@ -182,7 +182,7 @@
         </button>
     </div>
 </div>
-
+ 
 <!-- ================================================================ -->
 <!-- SOUND BUTTON                                                       -->
 <!-- ================================================================ -->
@@ -191,12 +191,12 @@
         class="fixed top-4 right-4 bg-yellow-500 hover:bg-yellow-600 px-5 py-2 rounded-xl text-black text-sm font-bold shadow-2xl z-[9999] flex items-center gap-2">
     🔊 Sound ON
 </button>
-
+ 
 <!-- ================================================================ -->
 <!-- THEME / MODE SELECTOR                                             -->
 <!-- ================================================================ -->
 <div id="theme-selector" style="display:flex;flex-direction:column;gap:14px;align-items:center;padding:20px;background:rgba(0,0,0,0.6);border-radius:16px;border:2px solid #4ade80;min-width:320px;max-width:480px;width:90%;">
-
+ 
     <!-- Auth Bar -->
     <div id="auth-bar" style="width:100%;background:#1f2937;border-radius:10px;padding:10px 14px;border:1px solid #374151;display:flex;align-items:center;justify-content:space-between;gap:10px;">
         <div id="auth-logged-out" style="display:flex;align-items:center;gap:8px;width:100%;">
@@ -216,15 +216,16 @@
             <button onclick="googleLogout()" style="background:#374151;color:#9ca3af;border:none;border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer;">ออก</button>
         </div>
     </div>
-
+ 
     <!-- Mode Buttons -->
     <div style="display:flex;gap:8px;width:100%;">
         <button id="btn-mode-ai"     onclick="selectMode('ai')"     style="flex:1;padding:10px 4px;border-radius:8px;font-weight:700;font-size:13px;background:#166534;color:white;border:2px solid #4ade80;cursor:pointer;">🤖 vs AI</button>
         <button id="btn-mode-local"  onclick="selectMode('local')"  style="flex:1;padding:10px 4px;border-radius:8px;font-weight:700;font-size:13px;background:#374151;color:white;border:2px solid transparent;cursor:pointer;">👥 Hotseat</button>
         <button id="btn-mode-online" onclick="selectMode('online')" style="flex:1;padding:10px 4px;border-radius:8px;font-weight:700;font-size:13px;background:#1e3a5f;color:white;border:2px solid transparent;cursor:pointer;">🌐 Online</button>
         <button id="btn-mode-chaos"  onclick="selectMode('chaos')"  style="flex:1;padding:10px 4px;border-radius:8px;font-weight:700;font-size:13px;background:#7c1d1d;color:white;border:2px solid transparent;cursor:pointer;">💥 Chaos</button>
+        <button id="btn-mode-draft"  onclick="selectMode('draft')"  style="flex:1;padding:10px 4px;border-radius:8px;font-weight:700;font-size:13px;background:#4c1d95;color:white;border:2px solid transparent;cursor:pointer;">⚔️ Draft</button>
     </div>
-
+ 
     <!-- Theme Selectors -->
     <div style="display:flex;gap:10px;width:100%;flex-wrap:wrap;">
         <div style="flex:1;min-width:120px;">
@@ -254,7 +255,7 @@
             </select>
         </div>
     </div>
-
+ 
     <!-- Online Panel -->
     <div id="online-panel" style="display:none;width:100%;flex-direction:column;gap:8px;">
         <div style="font-size:12px;color:#93c5fd;text-align:center;">ว่างไว้ = สร้าง Room ใหม่ | ใส่ ID = Join เพื่อน</div>
@@ -279,10 +280,10 @@
         </div>
         <div id="online-status" style="text-align:center;font-size:13px;color:#fcd34d;min-height:20px;font-weight:600;"></div>
     </div>
-
+ 
     <button id="start-game-btn" style="width:100%;padding:12px;background:#16a34a;color:white;border-radius:10px;font-weight:700;font-size:16px;border:none;cursor:pointer;">▶ เริ่มเกมใหม่</button>
 </div>
-
+ 
 <!-- ================================================================ -->
 <!-- STATS MODAL                                                        -->
 <!-- ================================================================ -->
@@ -302,7 +303,7 @@
         </div>
     </div>
 </div>
-
+ 
 <!-- ================================================================ -->
 <!-- TARGETING OVERLAY                                                  -->
 <!-- ================================================================ -->
@@ -310,7 +311,7 @@
     <div class="text-blue-300 font-bold mb-1">🎯 เลือกเป้าหมายบนสนาม</div>
     <button id="btn-cancel-target" class="bg-red-600 hover:bg-red-500 text-white text-xs py-1 px-3 rounded">ยกเลิก</button>
 </div>
-
+ 
 <!-- ================================================================ -->
 <!-- MULLIGAN MODAL                                                     -->
 <!-- ================================================================ -->
@@ -325,11 +326,11 @@
         </div>
     </div>
 </div>
-
+ 
 <!-- ================================================================ -->
 <!-- GAME BOARD                                                         -->
 <!-- ================================================================ -->
-
+ 
 <!-- AI Header -->
 <div class="flex-none p-3 bg-red-900 bg-opacity-40 border-b border-red-700 flex justify-between items-center">
     <div class="flex gap-3 items-center">
@@ -365,13 +366,13 @@
         </div>
     </div>
 </div>
-
+ 
 <!-- AI Field -->
 <div class="flex-none p-2">
     <div class="text-center text-xs text-gray-500 mb-1 font-bold">AI FIELD <span id="ai-field-label" class="text-yellow-400"></span></div>
     <div class="zone" id="ai-field"></div>
 </div>
-
+ 
 <!-- Center: Log + Turn Controls -->
 <div class="flex-grow flex flex-col justify-center items-center px-4 py-2">
     <div class="flex flex-col sm:flex-row gap-4 w-full max-w-4xl items-center">
@@ -395,13 +396,13 @@
         </div>
     </div>
 </div>
-
+ 
 <!-- Player Field -->
 <div class="flex-none p-2">
     <div class="text-center text-xs text-gray-500 mb-1 font-bold">PLAYER FIELD <span id="player-field-label" class="text-yellow-400"></span></div>
     <div class="zone" id="player-field"></div>
 </div>
-
+ 
 <!-- Player Footer -->
 <div class="flex-none p-3 bg-green-900 bg-opacity-40 border-t border-green-700">
     <div class="flex justify-between items-end mb-2">
@@ -438,16 +439,16 @@
         <div class="hand-zone" id="player-hand"></div>
     </div>
 </div>
-
+ 
 <!-- ================================================================ -->
 <!-- MODALS                                                             -->
 <!-- ================================================================ -->
-
+ 
 <!-- Card Zoom Overlay (hold) -->
 <div id="card-zoom-overlay">
     <div id="card-zoom-inner"></div>
 </div>
-
+ 
 <!-- Item View Modal -->
 <div id="item-view-modal" onclick="hideItemList()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:700;align-items:center;justify-content:center;">
     <div id="item-view-content" onclick="event.stopPropagation()" style="background:#1f2937;padding:20px;border-radius:16px;border:3px solid #a855f7;box-shadow:0 0 40px rgba(168,85,247,0.5);max-width:340px;width:90%;max-height:80vh;overflow-y:auto;">
@@ -458,7 +459,7 @@
         <div id="item-view-list"></div>
     </div>
 </div>
-
+ 
 <!-- Rematch Modal -->
 <div id="rematch-modal">
     <div style="background:#1f2937;padding:32px;border-radius:24px;border:4px solid #4ade80;box-shadow:0 0 60px rgba(74,222,128,0.5);text-align:center;min-width:280px;max-width:360px;width:92%;">
@@ -475,7 +476,7 @@
         <div id="rematch-status" class="mt-3 text-sm text-gray-400"></div>
     </div>
 </div>
-
+ 
 <!-- Graveyard Modal -->
 <div id="graveyard-modal" onclick="if(event.target.id==='graveyard-modal') hideGraveyard()">
     <div id="graveyard-content" onclick="event.stopImmediatePropagation()">
@@ -486,7 +487,7 @@
         <div id="graveyard-list" class="flex flex-wrap gap-4 justify-center"></div>
     </div>
 </div>
-
+ 
 <!-- Space Zone Modal -->
 <div id="spacezone-modal" onclick="if(event.target.id==='spacezone-modal') hideSpaceZone()" style="display:none;position:fixed;inset:0;background:rgba(10,10,30,0.95);z-index:350;align-items:center;justify-content:center;">
     <div id="spacezone-content" onclick="event.stopImmediatePropagation()" style="background:#1e1b4b;padding:24px;border-radius:20px;max-width:92%;max-height:88%;overflow-y:auto;border:5px solid #818cf8;box-shadow:0 0 50px rgba(129,140,248,0.6);">
@@ -497,13 +498,13 @@
         <div id="spacezone-list" class="flex flex-wrap gap-4 justify-center"></div>
     </div>
 </div>
-
+ 
 <!-- Card Detail Modal (double-click zoom) -->
 <div id="card-detail-modal" onclick="hideCardDetail()">
     <div id="detail-card-container" class="flex justify-center"></div>
     <div class="text-center text-gray-400 mt-4 text-sm">คลิกที่ใดก็ได้เพื่อปิด</div>
 </div>
-
+ 
 <!-- ================================================================ -->
 <!-- SCRIPTS — โหลดตามลำดับ dependency                               -->
 <!-- ================================================================ -->
@@ -521,6 +522,8 @@
 <script src="js/12_main.js"></script>
 <script src="js/13_sound.js"></script>
 <script src="js/14_online.js"></script>
-
+<script src="js/15_draft.js"></script>
+ 
 </body>
 </html>
+ 
