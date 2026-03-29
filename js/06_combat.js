@@ -1194,7 +1194,13 @@ if (symbolBlock && actualTarget.id !== symbolBlock.id) {
                         trackKill(gameMode === 'online' ? state.currentTurn : 'player');
                     }
                     c.isDyingProcessing = false; // ล้างสถานะก่อนลงสุสาน
-                    p.graveyard.push(c);
+                    // ── Space Deck On Death ──
+                    if (effectiveName === 'Holo Alien') {
+                        log(`🛸 [Holo Alien] ร่างโฮโลแกรมสลายไป... กลับคืนสู่ Space Zone!`, 'text-teal-400 font-bold');
+                        p.spaceZone.push(c);
+                    } else {
+                        p.graveyard.push(c); // ลงสุสานปกติ
+                    }
 
                     if (effectiveName === 'Rubber Duck') {
                         log(`[Rubber Duck Death] อัญเชิญ Character สุ่ม 1 ตัวจาก Toy Deck!`, 'text-yellow-400 font-bold');
