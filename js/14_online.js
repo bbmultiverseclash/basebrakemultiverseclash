@@ -619,7 +619,14 @@ function listenForDraftState() {
 }
 
 function renderDraftUI() {
-    const overlay = document.getElementById('draft-overlay');
+    // [FIX] null-check ทุก element ก่อนใช้ — ป้องกัน crash ถ้า DOM ยังไม่พร้อม
+    const overlay   = document.getElementById('draft-overlay');
+    const statusEl  = document.getElementById('draft-status');
+    const p1CountEl = document.getElementById('draft-p1-count');
+    const p2CountEl = document.getElementById('draft-p2-count');
+    const poolEl    = document.getElementById('draft-pool');
+    if (!overlay || !statusEl || !p1CountEl || !p2CountEl || !poolEl) return;
+
     overlay.style.display = 'flex';
 
     // รอบคี่: P1 แบนก่อน | รอบคู่: P2 แบนก่อน
@@ -638,10 +645,9 @@ function renderDraftUI() {
     else if (draftState.step === 5) { expected = firstPlayer;  actStr = 'เลือก 1 ใบสุดท้าย ✅'; }
 
     const isMine = (expected === myRole);
-    const statusEl = document.getElementById('draft-status');
 
     // แสดงว่าตาใคร และรอบที่เท่าไหร่ (จาก 30)
-    const totalRounds = 30; // 30 รอบ × 2 picks/รอบ = 60 ใบ
+    const totalRounds = 30;
     statusEl.innerText = `รอบที่ ${draftState.round}/${totalRounds}  |  ${isMine ? '👉 ตาของคุณ: ' + actStr : '⏳ รอคู่ต่อสู้: ' + actStr}`;
     statusEl.style.cssText = isMine
         ? 'font-size:1.1rem;font-weight:700;margin-bottom:16px;padding:8px 24px;border-radius:9999px;border:2px solid #4ade80;background:rgba(20,83,45,0.5);color:#4ade80;box-shadow:0 0 15px rgba(74,222,128,0.3);'
