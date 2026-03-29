@@ -36,12 +36,10 @@ let p2HasJoined  = false;  // P1: ห้าม push state จนกว่า P2 
 function selectMode(mode) {
     gameMode = mode;
     const overlay = document.getElementById('login-overlay');
-    if (mode === 'online') {
+    if (mode === 'online' || mode === 'draft') {
         if (!firebaseReady) {
-            // Offline - แจ้งว่าต้องใช้ GitHub Pages
-            alert('Online mode ต้องเปิดจาก GitHub Pages ครับ\nhttps://bbmultiverseclash.github.io/basebrakemultiverseclash/');
-            gameMode = 'ai';
-            mode = 'ai';
+            alert('Online / Draft mode ต้องเปิดจาก GitHub Pages ครับ\nhttps://bbmultiverseclash.github.io/basebrakemultiverseclash/');
+            gameMode = 'ai'; mode = 'ai';
         } else if (!currentUser) {
             if (overlay) overlay.style.display = 'flex';
         }
@@ -49,17 +47,28 @@ function selectMode(mode) {
         if (overlay) overlay.style.display = 'none';
     }
     isChaosMode = (mode === 'chaos');
-    if (mode === 'chaos') mode = 'ai'; // chaos ใช้ engine เดียวกับ vs AI
+    if (mode === 'chaos') mode = 'ai';
     gameMode = mode;
-    const map = { ai: ['#4ade80','btn-mode-ai'], local: ['#fbbf24','btn-mode-local'], online: ['#60a5fa','btn-mode-online'] };
-    ['ai','local','online','chaos'].forEach(m => {
+    
+    const map = { ai: ['#4ade80','btn-mode-ai'], local:['#fbbf24','btn-mode-local'], online:['#60a5fa','btn-mode-online'], draft: ['#818cf8','btn-mode-draft'] };
+    ['ai','local','online','chaos','draft'].forEach(m => {
         const btn = document.getElementById('btn-mode-' + m);
         if (!btn) return;
         const active = isChaosMode ? (m === 'chaos') : (m === mode);
         btn.style.borderColor = active ? (m === 'chaos' ? '#f87171' : (map[m] ? map[m][0] : 'white')) : 'transparent';
     });
-    document.getElementById('online-panel').style.display  = (mode === 'online') ? 'flex' : 'none';
-    document.getElementById('p2-theme-div').style.display  = (mode === 'online') ? 'none' : 'block';
+    
+    document.getElementById('online-panel').style.display = (mode === 'online' || mode === 'draft') ? 'flex' : 'none';
+    
+    if (mode === 'draft') {
+        document.getElementById('player-theme').parentElement.style.display = 'none';
+        document.getElementById('p2-theme-div').style.display = 'none';
+        document.getElementById('p2-theme-online').style.display = 'none';
+    } else {
+        document.getElementById('player-theme').parentElement.style.display = 'block';
+        document.getElementById('p2-theme-div').style.display = (mode === 'online') ? 'none' : 'block';
+        document.getElementById('p2-theme-online').style.display = (mode === 'online' && document.getElementById('room-id-input').value.trim()) ? 'block' : 'none';
+    }
 }
 selectMode('ai');
 
@@ -79,8 +88,6 @@ function copyRoomId() {
 async function startOnlineGame() {
     const inputId = document.getElementById('room-id-input').value.trim().toUpperCase();
     setOnlineStatus('⏳ กำลังเชื่อมต่อ...', '#fcd34d');
-
-    // สร้าง session token ใหม่ทุกครั้ง
     sessionToken = Date.now().toString();
 
     if (!inputId) {
@@ -89,21 +96,19 @@ async function startOnlineGame() {
         onlineRoomId = generateRoomId();
         document.getElementById('room-id-input').value = onlineRoomId;
 
-        // เขียน room ใหม่ลง Firebase ล้างข้อมูลเก่าออกด้วย
         await db.ref('rooms/' + onlineRoomId).set({
             session:     sessionToken,
             hostTheme:   selectedPlayerTheme,
+            gameMode:    gameMode,
             guestTheme:  null,
             guestReady:  false,
             gameReady:   false,
             state:       null,
             p2action:    null,
-
         });
 
         setOnlineStatus('📋 Room: ' + onlineRoomId + '  (ส่ง ID ให้เพื่อน)', '#4ade80');
 
-        // รอ guest join
         db.ref('rooms/' + onlineRoomId + '/guestReady').on('value', snap => {
             if (!snap.val()) return;
             db.ref('rooms/' + onlineRoomId + '/guestReady').off();
@@ -112,22 +117,26 @@ async function startOnlineGame() {
                 selectedAITheme = ts.val() || 'isekai_adventure';
                 setOnlineStatus('🎮 เพื่อนเข้าแล้ว! กำลังเริ่ม...', '#4ade80');
 
-                // บอก P2 ว่าเกมพร้อมแล้ว พร้อมส่ง session token **ก่อน** เริ่มเกม
-                db.ref('rooms/' + onlineRoomId + '/gameReady').set(sessionToken).then(() => {
+                if (gameMode === 'draft') {
                     document.getElementById('theme-selector').style.display = 'none';
-                    document.getElementById('chat-box').style.display = 'block';
-                    // ล้าง log/chat เก่าใน Firebase
-                    db.ref('rooms/' + onlineRoomId + '/logs').remove();
-                    db.ref('rooms/' + onlineRoomId + '/chat').remove();
-                    db.ref('rooms/' + onlineRoomId + '/p2mulligan').remove();
-                    setTimeout(() => {
-                        resetAndInitGame();
-                        p2HasJoined = true;
-                        pushStateToFirebase();
-                        listenForP2Actions();
-                        listenForChat();
-                    }, 1200);
-                });
+                    startDraftPhase();
+                    listenForP2Actions();
+                } else {
+                    db.ref('rooms/' + onlineRoomId + '/gameReady').set(sessionToken).then(() => {
+                        document.getElementById('theme-selector').style.display = 'none';
+                        document.getElementById('chat-box').style.display = 'block';
+                        db.ref('rooms/' + onlineRoomId + '/logs').remove();
+                        db.ref('rooms/' + onlineRoomId + '/chat').remove();
+                        db.ref('rooms/' + onlineRoomId + '/p2mulligan').remove();
+                        setTimeout(() => {
+                            resetAndInitGame();
+                            p2HasJoined = true;
+                            pushStateToFirebase();
+                            listenForP2Actions();
+                            listenForChat();
+                        }, 1200);
+                    });
+                }
             });
         });
 
@@ -138,40 +147,41 @@ async function startOnlineGame() {
         p2ReadyToReceive = false;
 
         const snap = await db.ref('rooms/' + onlineRoomId).get();
-        if (!snap.exists() || !snap.val().hostTheme) {
+        if (!snap.exists()) {
             setOnlineStatus('❌ ไม่พบ Room "' + onlineRoomId + '"', '#f87171');
             return;
         }
 
         const roomData = snap.val();
-        selectedPlayerTheme = roomData.hostTheme;
+        selectedPlayerTheme = roomData.hostTheme || 'isekai_adventure';
+        gameMode = roomData.gameMode || 'online';
 
-        // P2 เลือกธีมตัวเอง
         const p2ThemeEl = document.getElementById('p2-online-theme');
         selectedAITheme = p2ThemeEl ? p2ThemeEl.value : 'isekai_adventure';
 
-        // แจ้ง host ว่า guest เข้าแล้ว
         await db.ref('rooms/' + onlineRoomId).update({
             guestTheme: selectedAITheme,
             guestReady: true
         });
 
-        setOnlineStatus('✅ รอ Host เริ่มเกม...', '#fcd34d');
+        if (gameMode === 'draft') {
+            document.getElementById('theme-selector').style.display = 'none';
+            listenForDraftState();
+        } else {
+            setOnlineStatus('✅ รอ Host เริ่มเกม...', '#fcd34d');
+        }
 
-        // รอ gameReady (จะได้ session token จาก host)
         db.ref('rooms/' + onlineRoomId + '/gameReady').on('value', snap => {
             const token = snap.val();
             if (!token) return;
             db.ref('rooms/' + onlineRoomId + '/gameReady').off();
 
-            // เก็บ token ไว้ตรวจ state
             sessionToken = token;
             p2ReadyToReceive = true;
             setOnlineStatus('🎮 เกมเริ่มแล้ว!', '#4ade80');
             document.getElementById('theme-selector').style.display = 'none';
             document.getElementById('chat-box').style.display = 'block';
 
-            // เริ่มฟัง state, log, chat และ mulligan จาก host
             listenForStateFromHost();
             listenForLogs();
             listenForChat();
@@ -403,6 +413,7 @@ function executeRemoteAction(action) {
     if (action.type === 'nextPhase')     nextPhase();
     if (action.type === 'cancelTarget')  cancelTargeting();
     if (action.type === 'resolveTarget') resolveTargetedPlay('ai', action.sourceCardId, action.targetCharId);
+    if (action.type === 'draftAct')      processDraftAct('ai', action.cardIndex);
 
     if (action.type === 'doMulligan') {
         const p = state.players.ai;
@@ -518,4 +529,175 @@ function getMaxCardId(s) {
     return max;
 }
 
-    </script>
+// ================================================================
+// DRAFT DUEL SYSTEM
+// ================================================================
+let draftState = null;
+
+function startDraftPhase() {
+    draftState = {
+        round: 1,
+        step: 0,
+        pool: [],
+        p1Deck: [],
+        p2Deck: []
+    };
+    generateDraftPool();
+    db.ref('rooms/' + onlineRoomId + '/draftState').set(draftState);
+    listenForDraftState();
+}
+
+function generateDraftPool() {
+    const themes = ['isekai_adventure', 'animal_kingdom', 'mythology', 'toy_trooper', 'humanity'];
+    const pool = [];
+    themes.forEach(theme => {
+        const cardsInTheme = Object.keys(CardSets[theme]);
+        for (let i = 0; i < 2; i++) {
+            const randName = cardsInTheme[Math.floor(Math.random() * cardsInTheme.length)];
+            pool.push({ name: randName, theme: theme, status: null });
+        }
+    });
+    pool.sort(() => Math.random() - 0.5);
+    draftState.pool = pool;
+}
+
+function listenForDraftState() {
+    db.ref('rooms/' + onlineRoomId + '/draftState').on('value', snap => {
+        const ds = snap.val();
+        if (!ds) {
+            document.getElementById('draft-overlay').style.display = 'none';
+            return;
+        }
+        draftState = ds;
+        draftState.p1Deck = draftState.p1Deck || [];
+        draftState.p2Deck = draftState.p2Deck || [];
+        draftState.pool   = draftState.pool   || [];
+        renderDraftUI();
+    });
+}
+
+function renderDraftUI() {
+    const overlay = document.getElementById('draft-overlay');
+    overlay.style.display = 'flex';
+
+    const firstPlayer  = draftState.round % 2 !== 0 ? 'player' : 'ai';
+    const secondPlayer = firstPlayer === 'player' ? 'ai' : 'player';
+
+    let expected = null, actStr = '';
+    if      (draftState.step === 0) { expected = firstPlayer;  actStr = 'แบน 1 ใบ 🚫'; }
+    else if (draftState.step === 1) { expected = secondPlayer; actStr = 'แบน 1 ใบ 🚫'; }
+    else if (draftState.step === 2) { expected = firstPlayer;  actStr = 'เลือก 1 ใบ ✅'; }
+    else if (draftState.step === 3) { expected = secondPlayer; actStr = 'เลือกใบที่ 1/2 ✅'; }
+    else if (draftState.step === 4) { expected = secondPlayer; actStr = 'เลือกใบที่ 2/2 ✅'; }
+    else if (draftState.step === 5) { expected = firstPlayer;  actStr = 'เลือก 1 ใบสุดท้าย ✅'; }
+
+    const isMyTurn = (expected === myRole);
+    const statusEl = document.getElementById('draft-status');
+    statusEl.innerText = `รอบที่ ${draftState.round}/30  |  ${isMyTurn ? '👉 ตาของคุณ: ' + actStr : '⏳ รอคู่ต่อสู้: ' + actStr}`;
+    statusEl.className = `text-xl font-bold mb-6 px-6 py-2 rounded-full border-2 shadow-xl ${isMyTurn ? 'text-green-400 bg-green-900/40 border-green-500' : 'text-yellow-400 bg-gray-900 border-yellow-500'}`;
+
+    document.getElementById('draft-p1-count').innerHTML = `<span class="text-xs text-gray-400">P1 DECK</span><span class="text-2xl">${(draftState.p1Deck||[]).length}/60</span>`;
+    document.getElementById('draft-p2-count').innerHTML = `<span class="text-xs text-gray-400">P2 DECK</span><span class="text-2xl">${(draftState.p2Deck||[]).length}/60</span>`;
+
+    const poolEl = document.getElementById('draft-pool');
+    poolEl.innerHTML = '';
+
+    draftState.pool.forEach((cData, i) => {
+        const cardInst = createCardInstance(cData.name, cData.theme);
+        const el = renderCard(cardInst, true, cardInst.cost);
+        el.style.transform = 'scale(0.95)';
+        el.style.margin = '-8px';
+
+        if (cData.status === 'banned') {
+            el.style.filter = 'grayscale(100%) brightness(0.5)';
+            el.innerHTML += '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:3.5rem;color:#ef4444;z-index:10;text-shadow:0 0 10px #000;">🚫</div>';
+        } else if (cData.status === 'picked') {
+            el.style.filter = 'grayscale(70%) brightness(0.6)';
+            const color = cData.pickedBy === 'player' ? '#4ade80' : '#f87171';
+            const text  = cData.pickedBy === 'player' ? 'P1' : 'P2';
+            el.innerHTML += `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2rem;color:${color};font-weight:900;text-shadow:2px 2px 4px #000;z-index:10;flex-direction:column;">✅<span style="font-size:1.5rem">${text}</span></div>`;
+        } else {
+            if (isMyTurn) {
+                el.style.cursor = 'pointer';
+                el.style.border = '4px solid transparent';
+                el.onmouseenter = () => el.style.borderColor = (draftState.step <= 1) ? '#ef4444' : '#4ade80';
+                el.onmouseleave = () => el.style.borderColor = 'transparent';
+                el.onclick = () => handleDraftClick(i);
+            }
+        }
+        poolEl.appendChild(el);
+    });
+}
+
+function processDraftAct(playerRole, cardIndex) {
+    if (!draftState) return;
+    const card = draftState.pool[cardIndex];
+    if (!card || card.status) return;
+
+    const firstPlayer  = draftState.round % 2 !== 0 ? 'player' : 'ai';
+    const secondPlayer = firstPlayer === 'player' ? 'ai' : 'player';
+
+    let expectedPlayer = null, actType = '';
+    if      (draftState.step === 0) { expectedPlayer = firstPlayer;  actType = 'ban'; }
+    else if (draftState.step === 1) { expectedPlayer = secondPlayer; actType = 'ban'; }
+    else if (draftState.step === 2) { expectedPlayer = firstPlayer;  actType = 'pick'; }
+    else if (draftState.step === 3) { expectedPlayer = secondPlayer; actType = 'pick'; }
+    else if (draftState.step === 4) { expectedPlayer = secondPlayer; actType = 'pick'; }
+    else if (draftState.step === 5) { expectedPlayer = firstPlayer;  actType = 'pick'; }
+
+    if (playerRole !== expectedPlayer) return;
+
+    if (actType === 'ban') {
+        card.status = 'banned';
+    } else {
+        card.status   = 'picked';
+        card.pickedBy = playerRole;
+        if (playerRole === 'player') draftState.p1Deck.push(card);
+        else draftState.p2Deck.push(card);
+    }
+
+    draftState.step++;
+
+    if (draftState.step > 5) {
+        draftState.round++;
+        draftState.step = 0;
+        if (draftState.round > 30) {
+            finalizeDraftAndStartGame();
+            return;
+        } else {
+            generateDraftPool();
+        }
+    }
+
+    db.ref('rooms/' + onlineRoomId + '/draftState').set(draftState);
+}
+
+function handleDraftClick(index) {
+    if (myRole === 'player') {
+        processDraftAct('player', index);
+    } else {
+        sendOnlineAction({ type: 'draftAct', cardIndex: index });
+    }
+}
+
+function finalizeDraftAndStartGame() {
+    draftedP1Deck = draftState.p1Deck || [];
+    draftedP2Deck = draftState.p2Deck || [];
+
+    db.ref('rooms/' + onlineRoomId + '/draftState').off();
+    document.getElementById('draft-overlay').style.display = 'none';
+
+    db.ref('rooms/' + onlineRoomId + '/gameReady').set(sessionToken).then(() => {
+        document.getElementById('chat-box').style.display = 'block';
+        db.ref('rooms/' + onlineRoomId + '/logs').remove();
+        db.ref('rooms/' + onlineRoomId + '/chat').remove();
+        db.ref('rooms/' + onlineRoomId + '/p2mulligan').remove();
+        setTimeout(() => {
+            resetAndInitGame();
+            p2HasJoined = true;
+            pushStateToFirebase();
+            listenForChat();
+        }, 800);
+    });
+}
+
