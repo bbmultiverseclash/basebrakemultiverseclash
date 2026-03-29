@@ -136,6 +136,11 @@ function skipMulligan() {
             selectedAITheme     = document.getElementById('ai-theme').value;
             // gameMode ถูก set จาก selectMode() แล้ว
 
+            if (gameMode === 'draft') {
+                document.getElementById('theme-selector').style.display = 'none';
+                await startDraftDuel();
+                return;
+            }
             if (gameMode === 'online') {
                 await startOnlineGame();
                 return;
@@ -143,4 +148,3 @@ function skipMulligan() {
             document.getElementById('theme-selector').style.display = 'none';
             resetAndInitGame();
         };
-
