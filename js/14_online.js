@@ -771,4 +771,4 @@ function finalizeDraftAndStartGame() {
         });
     });
 }
-    </script>
+    
