@@ -4,15 +4,15 @@
         function offerMulligan(playerKey) {
     currentMulliganPlayer = playerKey;
     selectedMulliganCards = [];
-
+ 
     const modal = document.getElementById('mulligan-modal');
     const title = document.getElementById('mulligan-title');
     const handDiv = document.getElementById('mulligan-hand');
-
+ 
     title.innerHTML = `${playerKey.toUpperCase()} MULLIGAN (Turn 1)`;
     title.className = playerKey === 'player' ? 'text-green-400' : 'text-red-400';
     handDiv.innerHTML = '';
-
+ 
     const p = state.players[playerKey];
     p.hand.forEach(c => {
         const el = renderCard(c, true, getActualCost(c, playerKey));
@@ -22,10 +22,10 @@
         el.onclick = () => toggleMulliganSelect(c.id, el);
         handDiv.appendChild(el);
     });
-
+ 
     modal.style.display = 'flex';
 }
-
+ 
 function toggleMulliganSelect(cardId, el) {
     const idx = selectedMulliganCards.indexOf(cardId);
     if (idx === -1) {
@@ -38,7 +38,7 @@ function toggleMulliganSelect(cardId, el) {
         el.classList.remove('selected', 'border-green-400', 'scale-105');
     }
 }
-
+ 
 function confirmMulligan() {
     // ถ้าเป็น P2 ในโหมด Online ให้ส่ง ID การ์ดที่อยากเปลี่ยนไปให้ P1 จัดการสุ่มให้
     if (gameMode === 'online' && myRole === 'ai') {
@@ -46,10 +46,10 @@ function confirmMulligan() {
         document.getElementById('mulligan-modal').style.display = 'none';
         return;
     }
-
+ 
     const p = state.players[currentMulliganPlayer];
     const count = selectedMulliganCards.length;
-
+ 
     if (count > 0) {
         const returnedIds = new Set();
         selectedMulliganCards.forEach(id => {
@@ -85,9 +85,9 @@ function confirmMulligan() {
     } else {
         log(`${currentMulliganPlayer.toUpperCase()} ข้าม Mulligan`, 'text-gray-400');
     }
-
+ 
     document.getElementById('mulligan-modal').style.display = 'none';
-
+ 
     if (gameMode === 'local' && currentMulliganPlayer === 'player') {
         setTimeout(() => offerMulligan('ai'), 800);
     } else if (gameMode === 'online' && myRole === 'player') {
@@ -103,7 +103,7 @@ function confirmMulligan() {
         startPhase('MAIN');
     }
 }
-
+ 
 function skipMulligan() {
     // ถ้าเป็น P2 Online ข้ามไปเลย ส่ง doMulligan พร้อม returnedIds ว่าง
     if (gameMode === 'online' && myRole === 'ai') {
@@ -111,11 +111,11 @@ function skipMulligan() {
         document.getElementById('mulligan-modal').style.display = 'none';
         return;
     }
-
+ 
     const p = state.players[currentMulliganPlayer];
     log(`${currentMulliganPlayer.toUpperCase()} ข้าม Mulligan`, 'text-gray-400');
     document.getElementById('mulligan-modal').style.display = 'none';
-
+ 
     if (gameMode === 'local' && currentMulliganPlayer === 'player') {
         setTimeout(() => offerMulligan('ai'), 800);
     } else if (gameMode === 'online' && myRole === 'player') {
@@ -135,12 +135,14 @@ function skipMulligan() {
             selectedPlayerTheme = document.getElementById('player-theme').value;
             selectedAITheme     = document.getElementById('ai-theme').value;
             // gameMode ถูก set จาก selectMode() แล้ว
-
-            if (gameMode === 'online') {
+ 
+            // แก้ไข: ให้โหมด draft เข้าสู่ระบบ Online ด้วย
+            if (gameMode === 'online' || gameMode === 'draft') {
                 await startOnlineGame();
                 return;
             }
             document.getElementById('theme-selector').style.display = 'none';
             resetAndInitGame();
         };
-
+ 
+ 
