@@ -36,10 +36,9 @@ let p2HasJoined  = false;  // P1: ห้าม push state จนกว่า P2 
 function selectMode(mode) {
     gameMode = mode;
     const overlay = document.getElementById('login-overlay');
-    if (mode === 'online') {
+    if (mode === 'online' || mode === 'draft') {
         if (!firebaseReady) {
-            // Offline - แจ้งว่าต้องใช้ GitHub Pages
-            alert('Online mode ต้องเปิดจาก GitHub Pages ครับ\nhttps://bbmultiverseclash.github.io/basebrakemultiverseclash/');
+            alert('Online/Draft mode ต้องเปิดจาก GitHub Pages ครับ\nhttps://bbmultiverseclash.github.io/basebrakemultiverseclash/');
             gameMode = 'ai';
             mode = 'ai';
         } else if (!currentUser) {
@@ -49,17 +48,21 @@ function selectMode(mode) {
         if (overlay) overlay.style.display = 'none';
     }
     isChaosMode = (mode === 'chaos');
-    if (mode === 'chaos') mode = 'ai'; // chaos ใช้ engine เดียวกับ vs AI
+    if (mode === 'chaos') mode = 'ai';
     gameMode = mode;
-    const map = { ai: ['#4ade80','btn-mode-ai'], local: ['#fbbf24','btn-mode-local'], online: ['#60a5fa','btn-mode-online'] };
-    ['ai','local','online','chaos'].forEach(m => {
+    const map = { ai: ['#4ade80','btn-mode-ai'], local: ['#fbbf24','btn-mode-local'], online: ['#60a5fa','btn-mode-online'], draft: ['#a855f7','btn-mode-draft'] };
+    ['ai','local','online','chaos','draft'].forEach(m => {
         const btn = document.getElementById('btn-mode-' + m);
         if (!btn) return;
         const active = isChaosMode ? (m === 'chaos') : (m === mode);
         btn.style.borderColor = active ? (m === 'chaos' ? '#f87171' : (map[m] ? map[m][0] : 'white')) : 'transparent';
     });
-    document.getElementById('online-panel').style.display  = (mode === 'online') ? 'flex' : 'none';
-    document.getElementById('p2-theme-div').style.display  = (mode === 'online') ? 'none' : 'block';
+    // draft และ online ใช้ Room ID panel เหมือนกัน
+    document.getElementById('online-panel').style.display = (mode === 'online' || mode === 'draft') ? 'flex' : 'none';
+    // draft ไม่ต้องเลือก deck เลย ซ่อน theme selectors ทั้งหมด
+    document.getElementById('p2-theme-div').style.display = (mode === 'online' || mode === 'draft') ? 'none' : 'block';
+    const themeRow = document.getElementById('theme-row');
+    if (themeRow) themeRow.style.display = (mode === 'draft') ? 'none' : '';
 }
 selectMode('ai');
 
@@ -518,4 +521,4 @@ function getMaxCardId(s) {
     return max;
 }
 
-    
+    </script>
