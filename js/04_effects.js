@@ -66,6 +66,50 @@
                     }
                 });
                 checkDeath(playerKey);
+                // ── Space Deck On Summon ──
+            if (effectiveName === 'Space Overseer') {
+                log(`🌌 "มองดูดวงดาวสิ... มีความลับซ่อนอยู่"`, 'text-indigo-300 font-bold italic');
+                log(`[Summon] Space Overseer จั่ว 2 ใบ (1 ใบขึ้นมือ, 1 ใบไป Space Zone)`, 'text-indigo-400 font-bold');
+                
+                if (p.deck.length >= 2) {
+                    const card1 = p.deck.pop();
+                    const card2 = p.deck.pop();
+                    
+                    const isHumanTurn = (playerKey === 'player' && gameMode !== 'ai') || (gameMode === 'online' && playerKey === myRole);
+                    
+                    if (isHumanTurn) {
+                        // ใช้ confirm ถามผู้เล่น
+                        const keepFirst = confirm(`[Space Overseer]\nคุณจั่วได้:\n1. ${card1.name}\n2. ${card2.name}\n\nกด [OK] เพื่อเก็บ ${card1.name} ขึ้นมือ (ส่ง ${card2.name} ไป Space Zone)\nกด [Cancel] เพื่อเก็บ ${card2.name} ขึ้นมือ (ส่ง ${card1.name} ไป Space Zone)`);
+                        
+                        if (keepFirst) {
+                            p.hand.push(card1);
+                            p.spaceZone.push(card2);
+                            log(`เก็บ ${card1.name} ขึ้นมือ, ส่ง ${card2.name} ไป Space Zone`, 'text-indigo-300');
+                        } else {
+                            p.hand.push(card2);
+                            p.spaceZone.push(card1);
+                            log(`เก็บ ${card2.name} ขึ้นมือ, ส่ง ${card1.name} ไป Space Zone`, 'text-indigo-300');
+                        }
+                    } else {
+                        // AI สุ่มเลือก
+                        if (Math.random() < 0.5) {
+                            p.hand.push(card1);
+                            p.spaceZone.push(card2);
+                            log(`AI เก็บ ${card1.name} ขึ้นมือ, ส่ง ${card2.name} ไป Space Zone`, 'text-indigo-300');
+                        } else {
+                            p.hand.push(card2);
+                            p.spaceZone.push(card1);
+                            log(`AI เก็บ ${card2.name} ขึ้นมือ, ส่ง ${card1.name} ไป Space Zone`, 'text-indigo-300');
+                        }
+                    }
+                } else if (p.deck.length === 1) {
+                    const card1 = p.deck.pop();
+                    p.hand.push(card1);
+                    log(`เด็คเหลือใบเดียว เก็บ ${card1.name} ขึ้นมือ`, 'text-indigo-300');
+                } else {
+                    log(`เด็คหมดแล้ว!`, 'text-red-400');
+                }
+            }
                 checkDeath(opponentKey);
             }
 
