@@ -630,7 +630,21 @@ function tickTempBuffs(playerKey) {
                     totalAtk += handCount;
                 }
             }
+             // ── Space Deck Ongoing ──
+            if (state.players[ownerKey] && state.players[ownerKey].spaceZone) {
+                const spaceZoneCount = state.players[ownerKey].spaceZone.length;
 
+                if (effectiveName === 'One Eye') {
+                    totalAtk += spaceZoneCount;
+                }
+
+                if (effectiveName === 'Galax Dragon') {
+                    if (spaceZoneCount >= 7) {
+                        totalHp += 5;
+                        totalMaxHp += 5;
+                    }
+                }
+            }
             return { atk: Math.max(0, totalAtk), hp: Math.max(0, totalHp), maxHp: Math.max(0, totalMaxHp), hasEvade, damageReduce, damageMultiplier, maxAttacks };
         }
 
