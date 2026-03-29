@@ -308,7 +308,32 @@
             "mage": {},
 
             // ─── SPACE DECK ──────────────────────────────────────────────────
-            "space": {}
+            "space": {
+                'Space Overseer': { 
+                    name: 'Space Overseer', type: 'Character', cost: 2, atk: 1, hp: 1, maxHp: 1, 
+                    text: 'On Summon: Draw 2 cards. Choose 1 to hand, 1 to Space Zone.', 
+                    color: 'bg-indigo-900', maxAttacks: 1,
+                    art: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=800&q=80' // ใส่รูปชั่วคราว
+                },
+                'One Eye': { 
+                    name: 'One Eye', type: 'Character', cost: 3, atk: 0, hp: 4, maxHp: 4, 
+                    text: 'Ongoing: +1 ATK ต่อจำนวนการ์ดใน Space Zone ของคุณ', 
+                    color: 'bg-purple-800', maxAttacks: 1,
+                    art: 'https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?w=800&q=80'
+                },
+                'Galax Dragon': { 
+                    name: 'Galax Dragon', type: 'Character', cost: 8, atk: 6, hp: 6, maxHp: 6, 
+                    text: 'Ongoing: ถ้ามีการ์ดใน Space Zone 7 ใบขึ้นไป ได้รับ +5 HP', 
+                    color: 'bg-blue-900', maxAttacks: 1,
+                    art: 'https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=800&q=80'
+                },
+                'Holo Alien': { 
+                    name: 'Holo Alien', type: 'Character', cost: 2, atk: 2, hp: 2, maxHp: 2, 
+                    text: 'On Death: ไปที่ Space Zone แทนที่จะไปสุสาน', 
+                    color: 'bg-teal-900', maxAttacks: 1,
+                    art: 'https://images.unsplash.com/photo-1618331835717-801e976710b2?w=800&q=80'
+                }
+            }
         };
 
         const StatusEffects = ['Burn', 'Paralyze', 'Poison', 'Freeze', 'Bleed', 'Levitate'];
