@@ -370,8 +370,12 @@
             if (theme === 'mage') {
                 // Mage deck — cards will be added later
             }
-            if (theme === 'space') {
-                // Space deck — cards will be added later
+           if (theme === 'space') {
+                for(let i=0; i<5; i++) deck.push(createCardInstance('Space Overseer', theme));
+                for(let i=0; i<3; i++) deck.push(createCardInstance('One Eye', theme));
+                for(let i=0; i<2; i++) deck.push(createCardInstance('Galax Dragon', theme));
+                for(let i=0; i<2; i++) deck.push(createCardInstance('Holo Alien', theme));
+            }
             }
             return deck.sort(() => Math.random() - 0.5);
         }
