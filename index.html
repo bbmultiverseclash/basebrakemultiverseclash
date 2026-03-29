@@ -218,12 +218,12 @@
     </div>
  
     <!-- Mode Buttons -->
-    <div style="display:flex;gap:8px;width:100%;">
+    <div style="display:flex;gap:8px;width:100%;flex-wrap:wrap;">
         <button id="btn-mode-ai"     onclick="selectMode('ai')"     style="flex:1;padding:10px 4px;border-radius:8px;font-weight:700;font-size:13px;background:#166534;color:white;border:2px solid #4ade80;cursor:pointer;">🤖 vs AI</button>
         <button id="btn-mode-local"  onclick="selectMode('local')"  style="flex:1;padding:10px 4px;border-radius:8px;font-weight:700;font-size:13px;background:#374151;color:white;border:2px solid transparent;cursor:pointer;">👥 Hotseat</button>
         <button id="btn-mode-online" onclick="selectMode('online')" style="flex:1;padding:10px 4px;border-radius:8px;font-weight:700;font-size:13px;background:#1e3a5f;color:white;border:2px solid transparent;cursor:pointer;">🌐 Online</button>
+        <button id="btn-mode-draft"  onclick="selectMode('draft')"  style="flex:1;padding:10px 4px;border-radius:8px;font-weight:700;font-size:13px;background:#4f46e5;color:white;border:2px solid transparent;cursor:pointer;">🃏 Draft</button>
         <button id="btn-mode-chaos"  onclick="selectMode('chaos')"  style="flex:1;padding:10px 4px;border-radius:8px;font-weight:700;font-size:13px;background:#7c1d1d;color:white;border:2px solid transparent;cursor:pointer;">💥 Chaos</button>
-        <button id="btn-mode-draft"  onclick="selectMode('draft')"  style="flex:1;padding:10px 4px;border-radius:8px;font-weight:700;font-size:13px;background:#4c1d95;color:white;border:2px solid transparent;cursor:pointer;">⚔️ Draft</button>
     </div>
  
     <!-- Theme Selectors -->
@@ -302,6 +302,19 @@
             <div style="text-align:center;color:#6b7280;font-size:13px;padding:12px;">กำลังโหลด...</div>
         </div>
     </div>
+</div>
+ 
+<!-- ================================================================ -->
+<!-- DRAFT DUEL OVERLAY                                               -->
+<!-- ================================================================ -->
+<div id="draft-overlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.98); z-index:8000; flex-direction:column; padding:20px; align-items:center; justify-content:center;">
+    <div class="text-4xl font-black text-indigo-400 mb-2" style="text-shadow: 0 0 20px rgba(99,102,241,0.6);">🃏 DRAFT DUEL</div>
+    <div id="draft-status" class="text-xl font-bold text-yellow-400 mb-6 bg-gray-900 px-6 py-2 rounded-full border-2 border-yellow-500 shadow-xl">กำลังเตรียมการ...</div>
+    <div class="flex gap-12 mb-6 text-lg bg-gray-800 px-8 py-3 rounded-2xl border-2 border-gray-600 shadow-2xl">
+        <div id="draft-p1-count" class="text-green-400 font-bold flex flex-col items-center"><span class="text-xs text-gray-400">P1 DECK</span><span class="text-2xl">0/60</span></div>
+        <div id="draft-p2-count" class="text-red-400 font-bold flex flex-col items-center"><span class="text-xs text-gray-400">P2 DECK</span><span class="text-2xl">0/60</span></div>
+    </div>
+    <div id="draft-pool" class="flex flex-wrap gap-4 justify-center max-w-5xl bg-gray-900 p-8 rounded-3xl border-4 border-indigo-900 shadow-[0_0_50px_rgba(49,46,129,0.8)] min-h-[400px]"></div>
 </div>
  
 <!-- ================================================================ -->
@@ -522,8 +535,6 @@
 <script src="js/12_main.js"></script>
 <script src="js/13_sound.js"></script>
 <script src="js/14_online.js"></script>
-<script src="js/15_draft.js"></script>
  
 </body>
 </html>
- 
