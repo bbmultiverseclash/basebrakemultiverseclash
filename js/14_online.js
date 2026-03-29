@@ -653,10 +653,9 @@ function renderDraftUI() {
         ? 'font-size:1.1rem;font-weight:700;margin-bottom:16px;padding:8px 24px;border-radius:9999px;border:2px solid #4ade80;background:rgba(20,83,45,0.5);color:#4ade80;box-shadow:0 0 15px rgba(74,222,128,0.3);'
         : 'font-size:1.1rem;font-weight:700;margin-bottom:16px;padding:8px 24px;border-radius:9999px;border:2px solid #f59e0b;background:#111827;color:#fbbf24;box-shadow:0 0 15px rgba(245,158,11,0.2);';
 
-    document.getElementById('draft-p1-count').innerHTML = `<span style="font-size:0.7rem;color:#6b7280;">P1 DECK</span><span style="font-size:1.5rem;">${(draftState.p1Deck||[]).length}/60</span>`;
-    document.getElementById('draft-p2-count').innerHTML = `<span style="font-size:0.7rem;color:#6b7280;">P2 DECK</span><span style="font-size:1.5rem;">${(draftState.p2Deck||[]).length}/60</span>`;
+    p1CountEl.innerHTML = `<span style="font-size:0.7rem;color:#6b7280;">P1 DECK</span><span style="font-size:1.5rem;">${(draftState.p1Deck||[]).length}/60</span>`;
+    p2CountEl.innerHTML = `<span style="font-size:0.7rem;color:#6b7280;">P2 DECK</span><span style="font-size:1.5rem;">${(draftState.p2Deck||[]).length}/60</span>`;
 
-    const poolEl = document.getElementById('draft-pool');
     poolEl.innerHTML = '';
 
     draftState.pool.forEach((cData, i) => {
