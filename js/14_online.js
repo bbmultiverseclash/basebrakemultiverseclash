@@ -58,16 +58,16 @@ function selectMode(mode) {
         btn.style.borderColor = active ? (m === 'chaos' ? '#f87171' : (map[m] ? map[m][0] : 'white')) : 'transparent';
     });
     
-    { const _el = document.getElementById('online-panel'); if (_el) _el.style.display = (mode === 'online' || mode === 'draft') ? 'flex' : 'none'; }
+    document.getElementById('online-panel').style.display = (mode === 'online' || mode === 'draft') ? 'flex' : 'none';
     
     if (mode === 'draft') {
         document.getElementById('player-theme').parentElement.style.display = 'none';
-        { const _el = document.getElementById('p2-theme-div'); if (_el) _el.style.display = 'none'; }
-        { const _el = document.getElementById('p2-theme-online'); if (_el) _el.style.display = 'none'; }
+        document.getElementById('p2-theme-div').style.display = 'none';
+        document.getElementById('p2-theme-online').style.display = 'none';
     } else {
         document.getElementById('player-theme').parentElement.style.display = 'block';
-        { const _el = document.getElementById('p2-theme-div'); if (_el) _el.style.display = (mode === 'online') ? 'none' : 'block'; }
-        { const _el = document.getElementById('p2-theme-online'); if (_el) _el.style.display = (mode === 'online' && document.getElementById('room-id-input').value.trim()) ? 'block' : 'none'; }
+        document.getElementById('p2-theme-div').style.display = (mode === 'online') ? 'none' : 'block';
+        document.getElementById('p2-theme-online').style.display = (mode === 'online' && document.getElementById('room-id-input').value.trim()) ? 'block' : 'none';
     }
 }
 selectMode('ai');
@@ -118,13 +118,16 @@ async function startOnlineGame() {
                 setOnlineStatus('🎮 เพื่อนเข้าแล้ว! กำลังเริ่ม...', '#4ade80');
 
                 if (gameMode === 'draft') {
-                    { const _el = document.getElementById('theme-selector'); if (_el) _el.style.display = 'none'; }
+                    document.getElementById('theme-selector').style.display = 'none';
+                    { const _el = document.getElementById('chat-box'); if (_el) _el.style.display = 'block'; }
+                    db.ref('rooms/' + onlineRoomId + '/chat').remove();
                     startDraftPhase();
                     listenForP2Actions();
+                    listenForChat();
                 } else {
                     db.ref('rooms/' + onlineRoomId + '/gameReady').set(sessionToken).then(() => {
-                        { const _el = document.getElementById('theme-selector'); if (_el) _el.style.display = 'none'; }
-                        { const _el = document.getElementById('chat-box'); if (_el) _el.style.display = 'block'; }
+                        document.getElementById('theme-selector').style.display = 'none';
+                        document.getElementById('chat-box').style.display = 'block';
                         db.ref('rooms/' + onlineRoomId + '/logs').remove();
                         db.ref('rooms/' + onlineRoomId + '/chat').remove();
                         db.ref('rooms/' + onlineRoomId + '/p2mulligan').remove();
@@ -167,9 +170,11 @@ async function startOnlineGame() {
         });
 
         if (gameMode === 'draft') {
-            { const _el = document.getElementById('theme-selector'); if (_el) _el.style.display = 'none'; }
+            document.getElementById('theme-selector').style.display = 'none';
+            { const _el = document.getElementById('chat-box'); if (_el) _el.style.display = 'block'; }
             setOnlineStatus('🃏 Draft กำลังเริ่ม...', '#818cf8');
             listenForDraftState();
+            listenForChat();
         } else {
             setOnlineStatus('✅ รอ Host เริ่มเกม...', '#fcd34d');
         }
@@ -185,8 +190,8 @@ async function startOnlineGame() {
             // ถ้าเป็น draft mode P2 ต้องปิด overlay แล้วเริ่มเกมด้วย
             if (gameMode === 'draft') {
                 db.ref('rooms/' + onlineRoomId + '/draftState').off();
-                { const _el = document.getElementById('draft-overlay'); if (_el) _el.style.display = 'none'; }
-                { const _el = document.getElementById('chat-box'); if (_el) _el.style.display = 'block'; }
+                document.getElementById('draft-overlay').style.display = 'none';
+                document.getElementById('chat-box').style.display = 'block';
                 setOnlineStatus('🎮 Draft จบ! กำลังเริ่มเกม...', '#4ade80');
                 // P2 ดึง deck ที่ดราฟต์ไว้จาก Firebase
                 db.ref('rooms/' + onlineRoomId + '/draftResult').get().then(drSnap => {
@@ -205,8 +210,8 @@ async function startOnlineGame() {
             }
 
             setOnlineStatus('🎮 เกมเริ่มแล้ว!', '#4ade80');
-            { const _el = document.getElementById('theme-selector'); if (_el) _el.style.display = 'none'; }
-            { const _el = document.getElementById('chat-box'); if (_el) _el.style.display = 'block'; }
+            document.getElementById('theme-selector').style.display = 'none';
+            document.getElementById('chat-box').style.display = 'block';
 
             listenForStateFromHost();
             listenForLogs();
@@ -563,39 +568,7 @@ function getMaxCardId(s) {
 // ================================================================
 let draftState = null;
 
-function createDraftOverlay() {
-    if (document.getElementById('draft-overlay')) return; // ป้องกันสร้างซ้ำ
-    const overlay = document.createElement('div');
-    overlay.id = 'draft-overlay';
-    overlay.style.cssText = [
-        'position:fixed','inset:0','z-index:9999',
-        'background:rgba(0,0,0,0.92)',
-        'display:flex','flex-direction:column',
-        'align-items:center','justify-content:flex-start',
-        'padding:24px 16px','gap:12px','overflow-y:auto'
-    ].join(';');
-
-    overlay.innerHTML = `
-        <div style="width:100%;max-width:900px;display:flex;flex-direction:column;align-items:center;gap:12px;">
-            <div style="font-size:1.6rem;font-weight:900;color:#a78bfa;letter-spacing:2px;text-transform:uppercase;text-shadow:0 0 20px #7c3aed;">
-                ⚔️ DRAFT DUEL ⚔️
-            </div>
-            <div id="draft-status" style="font-size:1rem;font-weight:700;padding:8px 24px;border-radius:9999px;border:2px solid #4ade80;background:rgba(20,83,45,0.5);color:#4ade80;text-align:center;"></div>
-            <div style="display:flex;gap:24px;justify-content:center;">
-                <div id="draft-p1-count" style="display:flex;flex-direction:column;align-items:center;gap:2px;background:rgba(74,222,128,0.1);border:1px solid #4ade80;border-radius:12px;padding:8px 20px;color:#4ade80;"></div>
-                <div id="draft-p2-count" style="display:flex;flex-direction:column;align-items:center;gap:2px;background:rgba(248,113,113,0.1);border:1px solid #f87171;border-radius:12px;padding:8px 20px;color:#f87171;"></div>
-            </div>
-            <div style="font-size:0.75rem;color:#6b7280;text-align:center;">
-                🟥 = แบน &nbsp;|&nbsp; 🟩 P1 เลือก &nbsp;|&nbsp; 🟥 P2 เลือก &nbsp;|&nbsp; คลิกการ์ดเมื่อถึงตาคุณ
-            </div>
-            <div id="draft-pool" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;width:100%;"></div>
-        </div>
-    `;
-    document.body.appendChild(overlay);
-}
-
 function startDraftPhase() {
-    createDraftOverlay();
     draftState = {
         round: 1,
         step: 0,
@@ -636,11 +609,10 @@ function generateDraftPool() {
 }
 
 function listenForDraftState() {
-    createDraftOverlay();
     db.ref('rooms/' + onlineRoomId + '/draftState').on('value', snap => {
         const ds = snap.val();
         if (!ds) {
-            { const _el = document.getElementById('draft-overlay'); if (_el) _el.style.display = 'none'; }
+            document.getElementById('draft-overlay').style.display = 'none';
             return;
         }
         draftState = ds;
@@ -788,7 +760,7 @@ function finalizeDraftAndStartGame() {
     draftedP2Deck = draftState.p2Deck || [];
 
     db.ref('rooms/' + onlineRoomId + '/draftState').off();
-    { const _el = document.getElementById('draft-overlay'); if (_el) _el.style.display = 'none'; }
+    document.getElementById('draft-overlay').style.display = 'none';
 
     // เก็บ deck ลง Firebase ให้ P2 ดึงไปใช้ด้วย
     db.ref('rooms/' + onlineRoomId + '/draftResult').set({
@@ -796,7 +768,7 @@ function finalizeDraftAndStartGame() {
         p2Deck: draftedP2Deck
     }).then(() => {
         db.ref('rooms/' + onlineRoomId + '/gameReady').set(sessionToken).then(() => {
-            { const _el = document.getElementById('chat-box'); if (_el) _el.style.display = 'block'; }
+            document.getElementById('chat-box').style.display = 'block';
             db.ref('rooms/' + onlineRoomId + '/logs').remove();
             db.ref('rooms/' + onlineRoomId + '/chat').remove();
             db.ref('rooms/' + onlineRoomId + '/p2mulligan').remove();
