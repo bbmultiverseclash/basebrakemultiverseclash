@@ -3,7 +3,7 @@
 // ============================================================
 function playCard(playerKey, cardId) {
             // Online P2: ถ้าการ์ดต้องเลือกเป้าหมาย → เปิด UI ก่อน อย่าส่ง P1 ทันที
-            if (gameMode === 'online' && myRole === 'ai' && playerKey === 'ai') {
+            if ((gameMode === 'online' || gameMode === 'draft') && myRole === 'ai' && playerKey === 'ai') {
                 const p2 = state.players['ai'];
                 const p2CardIdx = p2.hand.findIndex(c => c.id === cardId);
                 if (p2CardIdx !== -1 && p2.hand[p2CardIdx].requiresTarget) {
@@ -32,7 +32,7 @@ function playCard(playerKey, cardId) {
                 if (myHasCol || oppHasCol) {
                     const existingChars = p.field.filter(c => c.type === 'Character' && getCharStats(c).hp > 0);
                     if (existingChars.length >= 1) {
-                        if (playerKey === 'player' || gameMode === 'local' || (gameMode === 'online' && myRole === 'ai' && playerKey === 'ai')) {
+                        if (playerKey === 'player' || gameMode === 'local' || ((gameMode === 'online' || gameMode === 'draft') && myRole === 'ai' && playerKey === 'ai')) {
                             alert('⚔️ [Colosseum] ไม่สามารถลงการ์ดได้! ต้องรอให้ตัวละครในสนามตายก่อน');
                         }
                         return;
@@ -41,7 +41,7 @@ function playCard(playerKey, cardId) {
             }
 
             if (card.type === 'Action' && state.actionPlayedThisTurn) {
-                if (playerKey === 'player' || gameMode === 'local' || (gameMode === 'online' && myRole === 'ai' && playerKey === 'ai')) {
+                if (playerKey === 'player' || gameMode === 'local' || ((gameMode === 'online' || gameMode === 'draft') && myRole === 'ai' && playerKey === 'ai')) {
                     alert('⚠️ สามารถเล่น Action Card ได้เพียง 1 ใบต่อเทิร์นเท่านั้น!');
                 }
                 return;
@@ -87,12 +87,12 @@ function playCard(playerKey, cardId) {
                 if (card.name === 'Niten Ichi-ryū') validTargets = p.field.filter(c => getEffectiveName(c) === 'Miyamoto Musashi' && getCharStats(c).hp > 0);
 
                 if (validTargets.length === 0) {
-                    if (playerKey === 'player' || gameMode === 'local' || (gameMode === 'online' && myRole === 'ai' && playerKey === 'ai'))
+                    if (playerKey === 'player' || gameMode === 'local' || ((gameMode === 'online' || gameMode === 'draft') && myRole === 'ai' && playerKey === 'ai'))
                         alert(`ไม่มีเป้าหมายที่เหมาะสมสำหรับ ${card.name}!`);
                     return;
                 }
 
-                const isHumanTurn = gameMode === 'local' || playerKey === 'player' || (gameMode === 'online' && myRole === 'ai' && playerKey === 'ai');
+                const isHumanTurn = gameMode === 'local' || playerKey === 'player' || ((gameMode === 'online' || gameMode === 'draft') && myRole === 'ai' && playerKey === 'ai');
                 if (isHumanTurn) {
                     state.targeting = {
                         active: true,
@@ -117,10 +117,10 @@ function playCard(playerKey, cardId) {
             // Mozart: เล่นการ์ด +1 Note
             mozartAddNotes(playerKey, 1, 'เล่นการ์ด');
             // Track card played
-            if ((gameMode === 'online' && playerKey === myRole) || (gameMode !== 'online' && playerKey === 'player')) {
+            if (((gameMode === 'online' || gameMode === 'draft') && playerKey === myRole) || (gameMode !== 'online' && gameMode !== 'draft' && playerKey === 'player')) {
                 trackCardPlayed(card.name);
             }
-            if (gameMode === 'online' && myRole === 'player' && playerKey === 'ai') {
+            if ((gameMode === 'online' || gameMode === 'draft') && myRole === 'player' && playerKey === 'ai') {
                 sessionStatsP2.cardsPlayed[card.name] = (sessionStatsP2.cardsPlayed[card.name] || 0) + 1;
                 sessionStatsP2.cardsPlayedTotal++;
             }
@@ -231,10 +231,10 @@ function playCard(playerKey, cardId) {
 
         function resolveTargetedPlay(playerKey, sourceCardId, targetCharId) {
             // Online P2: ส่ง action ให้ host execute
-            if (gameMode === 'online' && myRole === 'ai' && playerKey === 'ai') {
+            if ((gameMode === 'online' || gameMode === 'draft') && myRole === 'ai' && playerKey === 'ai') {
                 sendOnlineAction({ type: 'resolveTarget', sourceCardId, targetCharId }); return;
             }
-            if (gameMode === 'online' && myRole === 'player' && playerKey === 'ai') {
+            if ((gameMode === 'online' || gameMode === 'draft') && myRole === 'player' && playerKey === 'ai') {
                 const p2card = state.players.ai.hand.find(c => c.id === sourceCardId);
                 if (p2card) {
                     sessionStatsP2.cardsPlayed[p2card.name] = (sessionStatsP2.cardsPlayed[p2card.name] || 0) + 1;
@@ -277,7 +277,7 @@ function playCard(playerKey, cardId) {
                 const requiredName = _itemRestrict[card.name];
                 const targetEff = getEffectiveName(targetChar);
                 if (targetEff !== requiredName) {
-                    if (playerKey === 'player' || (gameMode === 'online' && myRole === 'ai' && playerKey === 'ai'))
+                    if (playerKey === 'player' || ((gameMode === 'online' || gameMode === 'draft') && myRole === 'ai' && playerKey === 'ai'))
                         alert(`${card.name} ใช้ได้กับ ${requiredName} เท่านั้น!`);
                     cancelTargeting();
                     return;
@@ -314,7 +314,7 @@ function playCard(playerKey, cardId) {
                 log(`🔥 ${playerKey.toUpperCase()} ${targetChar.name} วิวัฒนาการเป็นร่างใหม่!`, 'text-fuchsia-400 font-bold');
                 triggerOnSummon(targetChar, playerKey);
                 updateUI();
-                if (gameMode === 'online' && myRole === 'player') pushStateToFirebase();
+                if ((gameMode === 'online' || gameMode === 'draft') && myRole === 'player') pushStateToFirebase();
                 return;
             }
 
@@ -324,7 +324,7 @@ function playCard(playerKey, cardId) {
                 executeTargetedAction(card, playerKey, targetChar);
                 p.graveyard.push(card);
                 updateUI();
-                if (gameMode === 'online' && myRole === 'player') pushStateToFirebase();
+                if ((gameMode === 'online' || gameMode === 'draft') && myRole === 'player') pushStateToFirebase();
                 return;
             }
 
