@@ -22,7 +22,7 @@
             logDiv.appendChild(entry);
             logDiv.scrollTop = logDiv.scrollHeight;
             // Online P1: push log ไป Firebase ให้ P2 เห็นด้วย
-            if (gameMode === 'online' && myRole === 'player' && onlineRoomId) {
+            if ((gameMode === 'online' || gameMode === 'draft') && myRole === 'player' && onlineRoomId) {
                 const logRef = db.ref('rooms/' + onlineRoomId + '/logs');
                 logRef.push({ msg, color, ts: Date.now() });
             }
@@ -743,7 +743,7 @@ function tickTempBuffs(playerKey) {
             }
             // Online: ตอนโฮสต์กำลัง resolve เอฟเฟกต์หลายขั้น เราไม่ควร updateUI/ส่ง state กลางคัน
             // เพราะ P2 อาจเห็นภาพ "การ์ดหาย" หรือเฟสค้างได้ ก่อนจบการกระทำหลัก
-            if (!(gameMode === 'online' && myRole === 'player')) {
+            if (!((gameMode === 'online' || gameMode === 'draft') && myRole === 'player')) {
                 updateUI();
             }
         }
@@ -808,7 +808,7 @@ function tickTempBuffs(playerKey) {
         document.getElementById('btn-cancel-target').onclick = cancelTargeting;
 
         function nextPhase() {
-            // Online/Draft P2: ส่ง action ให้ host execute เท่านั้น
+            // Online P2: ส่ง action ให้ host execute
             if ((gameMode === 'online' || gameMode === 'draft') && myRole === 'ai' && state.currentTurn === 'ai') {
                 sendOnlineAction({ type: 'nextPhase' }); return;
             }
@@ -874,10 +874,10 @@ function tickTempBuffs(playerKey) {
                 currentP.statueOfLibertyUsed = false;
             }
             // Track our turns
-            const isMyTurnNow = (state.currentTurn === 'player' && gameMode !== 'online') ||
-                                (gameMode === 'online' && state.currentTurn === myRole);
+            const isMyTurnNow = (state.currentTurn === 'player' && gameMode !== 'online' && gameMode !== 'draft') ||
+                                ((gameMode === 'online' || gameMode === 'draft') && state.currentTurn === myRole);
             if (isMyTurnNow) sessionStats.turnsPlayed++;
-            if (gameMode === 'online' && myRole === 'player' && state.currentTurn === 'ai') sessionStatsP2.turnsPlayed++;
+            if ((gameMode === 'online' || gameMode === 'draft') && myRole === 'player' && state.currentTurn === 'ai') sessionStatsP2.turnsPlayed++;
             
             const p = state.players[state.currentTurn];
             
@@ -904,7 +904,7 @@ function tickTempBuffs(playerKey) {
                     const allTargets = [...state.players.player.field, ...state.players.ai.field].filter(ch => ch.type === 'Character' && getCharStats(ch).hp > 0);
                     if (allTargets.length > 0) {
                         const isHumanTurn = (state.currentTurn === 'player' && gameMode !== 'ai') ||
-                                           (gameMode === 'online' && state.currentTurn === myRole);
+                                           ((gameMode === 'online' || gameMode === 'draft') && state.currentTurn === myRole);
                         if (isHumanTurn) {
                             showF35TargetModal(c, allTargets);
                         } else {
