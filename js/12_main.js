@@ -26,7 +26,10 @@
         }
 
         document.getElementById('btn-next-phase').onclick = () => {
-            if (!state.targeting.active) nextPhase();
+            if (state.targeting.active) return;
+            // Online/Draft P1: กดได้เฉพาะตาตัวเอง
+            if ((gameMode === 'online' || gameMode === 'draft') && myRole === 'player' && state.currentTurn !== 'player') return;
+            nextPhase();
         };
 
         document.getElementById('ai-base-ui').onclick = () => {
