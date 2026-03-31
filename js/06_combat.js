@@ -3,8 +3,8 @@
 // ============================================================
         function initiateAttack(attackerId, targetId, targetIsBase = false) {
             // Online P2: ส่ง action ให้ host execute
-            if (gameMode === 'online' && myRole === 'ai') {
-                sendOnlineAction({ type: 'attack', attackerId, targetId, targetIsBase }); return;
+            if ((gameMode === 'online' || gameMode === 'draft') && myRole === 'ai') {
+    sendOnlineAction({ type: 'attack', attackerId, targetId, targetIsBase }); return;
             }
             playSound('attack');
             if (gameMode === 'online') pushSoundEvent('attack');
