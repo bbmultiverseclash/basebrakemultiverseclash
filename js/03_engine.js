@@ -927,7 +927,7 @@ function tickTempBuffs(playerKey) {
                 if(c.status.includes('Bleed') && !c.tossakanImmune) {
                     const hasPlagueCostume = c.items && c.items.some(item => item.name === 'Plague Costume');
                     if (!hasLuisPasteur && !hasPlagueCostume) {
-                        const bleedDmg = Math.floor(c.hp * 0.2) || 1;
+                        const bleedDmg = Math.max(1, Math.floor(getCharStats(c).hp * 0.2));
                         c.hp -= bleedDmg;
                         log(`${c.name} โดนเลือดไหล (Bleed) ${bleedDmg} ดาเมจ`, 'text-red-500');
                         // Fairy Ongoing: heal +3 when any ally takes damage (except Poison)
