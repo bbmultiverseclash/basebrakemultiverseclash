@@ -1022,6 +1022,7 @@ function startRankedOnline(deckId) {
 // ─── REDEEM CODE ──────────────────────────────────────────────────
 const REDEEM_CODES = {
     'SUN888':  { gold: 2000, label: '☀️ Sun 888' },
+    'RICHAF':  { gold: 9999,  label: '💰 รวยไม่ไหวแล้วโว้ย' },
 };
 const REDEEM_USED_KEY = 'basebreak_redeem_used';
 
