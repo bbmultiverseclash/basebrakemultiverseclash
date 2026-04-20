@@ -427,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
         SETS_META['easter'] = {
             label:'Easter Event', emoji:'🐣',
             mascot:'Great Rabbit',
-            mascotArt:'https://i.pinimg.com/736x/9e/32/38/9e3238f0ae9b6cd3c8e7e9d47c4cb3e1.jpg',
+            mascotArt:'https://files.catbox.moe/41g4f6.jpg',
             shopOnly: true  // [ADDED] ธงสำคัญ: ห้ามปรากฏใน Pack dropdown / ห้ามสุ่ม
         };
     }
