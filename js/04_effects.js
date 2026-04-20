@@ -1560,6 +1560,15 @@
                 log(`[Effect] Goal of All Life is Death ทำลายฐานศัตรู 3 HP!`, 'text-black font-bold');
                 checkWinCondition();
             }
+            // ── BLOCK C: EASTER EGG playAction handler ───────────────────
+            if (name === 'Easter Egg') {
+                const ownerPlayer = state.players[playerKey];
+                ownerPlayer.pendingEasterEgg = true;
+                log(`🥚 [Easter Egg] วางแล้ว! เทิร์นหน้าสุ่มอัญเชิญ Character Cost 5-7 จาก Deck`, 'text-yellow-400 font-bold');
+                return;
+            }
+// ── END BLOCK C ────────────────────────────────────────────────
+ 
             else if (card.name === 'Random Summon') {
                 if (p.field.length < getMaxFieldSlots(playerKey)) {
                     const allCharNames = Object.keys(CardSets[selectedPlayerTheme]).filter(k => CardSets[selectedPlayerTheme][k].type === 'Character');
