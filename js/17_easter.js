@@ -409,7 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 name:'Great Rabbit', type:'Character', cost:6, atk:3, hp:6, maxHp:6,
                 text:'จบเทิร์น: อัญเชิญ Great Rabbit 2 ตัวลงสนาม (1 ครั้ง/เทิร์น ต่อฝั่ง)',
                 color:'bg-pink-500', maxAttacks:1,
-                art:'https://i.pinimg.com/736x/9e/32/38/9e3238f0ae9b6cd3c8e7e9d47c4cb3e1.jpg',
+                art:'https://files.catbox.moe/41g4f6.jpg',
                 shopOnly: true, // [ADDED] Easter Shop exclusive
             },
             'Easter Egg': {
