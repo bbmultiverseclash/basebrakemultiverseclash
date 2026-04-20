@@ -874,7 +874,23 @@ if (symbolBlock && actualTarget.id !== symbolBlock.id) {
                         }
                     }
                 }
-
+                // ── BLOCK D: EASTER CARDS death effects ─────────────────────
+                // Dora the Explorer: ตาย → สุ่มรับการ์ด Cost>5 จาก Deck 1 ใบ
+                if (effectiveName === 'Dora the Explorer' && getCharStats(c).hp <= 0) {
+                    const highCostCards = p.deck.filter(dc => dc.cost > 5);
+                    if (highCostCards.length > 0) {
+                        const pick = highCostCards[Math.floor(Math.random() * highCostCards.length)];
+                        const deckIdx = p.deck.findIndex(d => d.id === pick.id);
+                        if (deckIdx !== -1) {
+                            const drawn = p.deck.splice(deckIdx, 1)[0];
+                            p.hand.push(drawn);
+                            log(`🗺️ [Dora Death] สุ่มได้ ${drawn.name} (Cost ${drawn.cost}) เข้ามือ!`, 'text-orange-300 font-bold');
+                        }
+                    } else {
+                        log(`🗺️ [Dora Death] ไม่มีการ์ด Cost>5 ใน Deck`, 'text-gray-500');
+                    }
+                }
+// ── END BLOCK D ────────────────────────────────────────────────
                 if (effectiveName === 'Arthur Leywin' && getCharStats(c).hp <= 0) {
                     p.cost = Math.min(20, p.cost + 5);
                     log(`[Death] Arthur Leywin ตาย → ได้ Cost +5 ทันที!`, 'text-yellow-400 font-bold');
