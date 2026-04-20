@@ -1390,7 +1390,98 @@ function tickTempBuffs(playerKey) {
                         log(`🧬 [Mendel Ongoing] ${target.name} +1 ATK, +1 HP!`, 'text-green-300 font-bold');
                     }
                 }
-
+                // ── BLOCK A: EASTER CARD END-OF-TURN EFFECTS ──────────────────
+                // Dora the Explorer: จบเทิร์น Equip Item จาก Deck ให้ Boots 1 ใบ
+                if (effectiveName === 'Dora the Explorer' && getCharStats(c).hp > 0 && !c.silenced) {
+                    const bootsOnField = p.field.find(b => b.isDoraBoot && b.doraOwnerId === c.id && getCharStats(b).hp > 0);
+                    if (bootsOnField) {
+                        const itemsInDeck = p.deck.filter(dc => dc.type === 'Item');
+                        if (itemsInDeck.length > 0) {
+                            const pick = itemsInDeck[Math.floor(Math.random() * itemsInDeck.length)];
+                            const deckIdx = p.deck.findIndex(d => d.id === pick.id);
+                            if (deckIdx !== -1) {
+                                const equippedItem = p.deck.splice(deckIdx, 1)[0];
+                                if (!bootsOnField.items) bootsOnField.items = [];
+                                bootsOnField.items.push(equippedItem);
+                                log(`🗺️ [Dora] จบเทิร์น: Equip ${equippedItem.name} ให้ Boots!`, 'text-orange-300 font-bold');
+                            }
+                        } else {
+                            log(`🗺️ [Dora] ไม่มี Item ใน Deck ให้ Equip Boots`, 'text-gray-500');
+                        }
+                    }
+                }
+ 
+                // Great Rabbit: จบเทิร์น อัญเชิญ Great Rabbit Token x2 (ครั้งเดียวต่อเทิร์น ต่อฝั่ง)
+                if (effectiveName === 'Great Rabbit' && getCharStats(c).hp > 0 && !c.silenced && !c.isGreatRabbitToken) {
+                    if (!p.greatRabbitSummonedThisTurn) {
+                        p.greatRabbitSummonedThisTurn = true;
+                        let spawned = 0;
+                        for (let ri = 0; ri < 2 && p.field.length < getMaxFieldSlots(playerKey); ri++) {
+                            const rabbitToken = {
+                                id: 'card_' + (cardIdCounter++),
+                                name: 'Great Rabbit', originalName: 'Great Rabbit',
+                                type: 'Character', cost: 0, atk: 3, hp: 6, maxHp: 6,
+                                text: 'Great Rabbit Token — จบเทิร์น: อัญเชิญ Great Rabbit 2 ตัว',
+                                color: 'bg-pink-500', maxAttacks: 1, attacksLeft: 0,
+                                art: 'https://i.pinimg.com/736x/9e/32/38/9e3238f0ae9b6cd3c8e7e9d47c4cb3e1.jpg',
+                                isGreatRabbitToken: true,
+                                status: [], items: [], silenced: false,
+                                shalltearBleedTurns:0, paralyzeTurns:0, freezeTurns:0,
+                                bleedTurns:0, burnTurns:0, goldenBuffExpires:[],
+                                poseidonReduceTurn:0, tossakanPermanentReduce:false,
+                                queenImmortalTurns:0, isSun:false, herculesExtraLives:0,
+                                natureWandUsed:false, escutcheonTurns:0,
+                                tossakanImmortalTurns:0, tossakanImmune:false,
+                                clayBarrierTurns:0, tempBuffs:[],
+                                hasAsunaBuff:false, hasRamBuff:false, hasRemBuff:false,
+                                costReducer:0, damageReduce:0, stolenText:'',
+                                immortalTurns:0,
+                            };
+                            p.field.push(rabbitToken);
+                            spawned++;
+                        }
+                        if (spawned > 0) {
+                            log(`🐇 [Great Rabbit] จบเทิร์น: อัญเชิญ Great Rabbit Token x${spawned}!`, 'text-pink-400 font-bold');
+                        }
+                    }
+                }
+// ── END BLOCK A ────────────────────────────────────────────────
+ 
+ 
+// ============================================================
+// PATCH B: 03_engine.js — switchTurn function
+// หา: "state.actionPlayedThisTurn = false;"
+// แทรก BLOCK B ด้านล่างนี้ ไว้หลังบรรทัดนั้น
+// ============================================================
+ 
+// ── BLOCK B: RESET EASTER FLAGS + EASTER EGG PENDING EFFECT ──
+            // Reset Great Rabbit summon flag for the new active player
+            const newActivePlayer = state.players[state.currentTurn];
+            newActivePlayer.greatRabbitSummonedThisTurn = false;
+ 
+            // Easter Egg: ถ้ามี pending summon สำหรับ player ที่เพิ่งเริ่มเทิร์น
+            if (newActivePlayer.pendingEasterEgg) {
+                newActivePlayer.pendingEasterEgg = false;
+                const candidates = newActivePlayer.deck.filter(dc =>
+                    dc.type === 'Character' && dc.cost >= 5 && dc.cost <= 7
+                );
+                if (candidates.length > 0 && newActivePlayer.field.length < getMaxFieldSlots(state.currentTurn)) {
+                    const pick = candidates[Math.floor(Math.random() * candidates.length)];
+                    const deckIdx = newActivePlayer.deck.findIndex(d => d.id === pick.id);
+                    if (deckIdx !== -1) {
+                        const summoned = newActivePlayer.deck.splice(deckIdx, 1)[0];
+                        summoned.attacksLeft = summoned.maxAttacks || 1;
+                        newActivePlayer.field.push(summoned);
+                        log(`🥚 [Easter Egg] ฟัก! อัญเชิญ ${summoned.name} (Cost ${summoned.cost}) ลงสนาม!`, 'text-yellow-400 font-bold');
+                        triggerOnSummon(summoned, state.currentTurn);
+                    }
+                } else if (candidates.length === 0) {
+                    log(`🥚 [Easter Egg] ไม่มี Character Cost 5-7 ใน Deck`, 'text-gray-500');
+                } else {
+                    log(`🥚 [Easter Egg] สนามเต็ม — ไม่สามารถอัญเชิญได้`, 'text-gray-500');
+                }
+            }
+// ── END BLOCK B ────────────────────────────────────────────────
                 // ── End humanity end-of-turn effects ──────────────────────
 
 
