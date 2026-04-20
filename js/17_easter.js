@@ -318,19 +318,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 name:'Dora the Explorer', type:'Character', cost:7, atk:1, hp:5, maxHp:5,
                 text:'Summon: เรียก Boots (3/4) ลงสนาม | Ongoing: จบเทิร์น สุ่ม Equip Item จาก Deck ให้ Boots 1 ใบ | ตาย: สุ่มรับการ์ด Cost>5 1 ใบ',
                 color:'bg-orange-500', maxAttacks:1,
-                art:'https://i.pinimg.com/736x/c3/44/e9/c344e9efb11b9e5ef6d7ac8fb6e35499.jpg'
+                art:'https://i.pinimg.com/736x/d5/9a/c4/d59ac4fcfaee7d0d6ffb82ac1cad9f81.jpg'
             },
             'Great Rabbit': {
                 name:'Great Rabbit', type:'Character', cost:6, atk:3, hp:6, maxHp:6,
                 text:'จบเทิร์น: อัญเชิญ Great Rabbit 2 ตัวลงสนาม (1 ครั้ง/เทิร์น ต่อฝั่ง)',
                 color:'bg-pink-500', maxAttacks:1,
-                art:'https://i.pinimg.com/736x/9e/32/38/9e3238f0ae9b6cd3c8e7e9d47c4cb3e1.jpg'
+                art:'https://i.pinimg.com/1200x/53/ff/6f/53ff6f638ab4ced427ac23a8256bb21d.jpg'
             },
             'Easter Egg': {
                 name:'Easter Egg', type:'Action', cost:3,
                 text:'Action: เทิร์นนี้ไม่มีผล แต่เทิร์นหน้าสุ่มอัญเชิญ Character Cost 5-7 จาก Deck',
                 color:'bg-yellow-500',
-                art:'https://i.pinimg.com/736x/d9/bf/89/d9bf89d1e80e67d3cdb7459f8a7d82e5.jpg'
+                art:'https://i.pinimg.com/1200x/86/aa/5d/86aa5d7229317d68daeff3cc8fd15ae0.jpg'
             },
         };
     }
