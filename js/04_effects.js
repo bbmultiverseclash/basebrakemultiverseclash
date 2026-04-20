@@ -70,7 +70,37 @@
                 card.immortalTurns = immortalRoll;
                 log(`🌿 [Anutin] ลงสนาม! อมตะ ${immortalRoll} เทิร์น${hasTerrain ? ` (เทเรน ${state.sharedFieldCard.name} เสริมพลัง!)` : ' (ไม่มีเทเรน)'}`, 'text-green-400 font-bold');
             }
-
+             // ── EASTER CARDS: Dora the Explorer on-summon ────────────────
+            if (effectiveName === 'Dora the Explorer') {
+                log(`🗺️ [Dora] "Hola! I'm Dora the Explorer!" — เรียก Boots ลงสนาม!`, 'text-orange-300 font-bold');
+                if (p.field.length < getMaxFieldSlots(playerKey)) {
+                    const bootsCard = {
+                        id: 'card_' + (cardIdCounter++),
+                        name: 'Boots', originalName: 'Boots',
+                        type: 'Character', cost: 0, atk: 3, hp: 4, maxHp: 4,
+                        text: 'ลิงสาวขี้อยากรู้ เพื่อนรักของ Dora | Ongoing: ได้รับ Item จาก Dora',
+                        color: 'bg-purple-600', maxAttacks: 1, attacksLeft: 1,
+                        art: 'https://i.pinimg.com/736x/b8/a5/46/b8a546e6e4d5b6c2f1a9e8c3d7f2e4b1.jpg',
+                        status: [], items: [], silenced: false,
+                        shalltearBleedTurns: 0, paralyzeTurns: 0, freezeTurns: 0,
+                        bleedTurns: 0, burnTurns: 0, goldenBuffExpires: [],
+                        poseidonReduceTurn: 0, tossakanPermanentReduce: false,
+                        queenImmortalTurns: 0, isSun: false, herculesExtraLives: 0,
+                        natureWandUsed: false, escutcheonTurns: 0,
+                        tossakanImmortalTurns: 0, tossakanImmune: false,
+                        clayBarrierTurns: 0, tempBuffs: [],
+                        hasAsunaBuff: false, hasRamBuff: false, hasRemBuff: false,
+                        costReducer: 0, damageReduce: 0, stolenText: '',
+                        isDoraBoot: true, doraOwnerId: card.id,
+                        immortalTurns: 0,
+                    };
+                    p.field.push(bootsCard);
+                    log(`🐒 [Dora] Boots (3/4) ลงสนามแล้ว!`, 'text-orange-200 font-bold');
+                } else {
+                    log(`🗺️ [Dora] สนามเต็ม — ไม่สามารถเรียก Boots!`, 'text-red-400');
+                }
+            }
+ 
             if (effectiveName === 'Oppenheimer') {
                 log(`💥 "Now I am become Death, the destroyer of worlds." — J. Robert Oppenheimer`, 'text-orange-200 font-bold italic');
                 log(`[Oppenheimer] Trinity Test complete. ทุกการ์ดบนสนาม -3 HP`, 'text-gray-400 font-bold');
