@@ -5,15 +5,12 @@
 // วางใน index.html ต่อจาก 18_theme_shop.js ก่อน </body>
 // ============================================================
 
-// ─── EXPIRY (26 เม.ย. 2026 เที่ยงคืน เวลาไทย) ─────────────────
-const HXH_PACK_EXPIRY = new Date('2026-04-26T23:59:59+07:00');
+//─── EXPIRY (26 เม.ย. 2026 เที่ยงคืน เวลาไทย) ─────────────────
+var HXH_PACK_EXPIRY = new Date('2026-04-26T23:59:59+07:00');
 function _isHxHPackAvailable() { return new Date() < HXH_PACK_EXPIRY; }
-
-// ─── COSTS & LIMITS ──────────────────────────────────────────
-const HXH_SINGLE_COST  = 1500;  // 🪙 Coins per single pull
-const HXH_BUNDLE_COST  = 199;   // 💎 Gems for bundle
-const HXH_MAX_PULLS    = 10;    // max single pulls per account
-
+var HXH_SINGLE_COST = 1500;
+var HXH_BUNDLE_COST = 199;
+var HXH_MAX_PULLS   = 10;
 // ─── ART URLs ────────────────────────────────────────────────
 const _HXH_ARTS = {
     Hisoka:   'https://preview.redd.it/how-to-build-hisoka-morrow-in-only-6-levels-v0-ut3inqd54hz51.png?width=1280&format=png&auto=webp&s=f9baabebe5d8464a27dacc1ca76559c71335a455',
