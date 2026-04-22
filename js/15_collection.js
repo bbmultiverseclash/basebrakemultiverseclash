@@ -339,7 +339,51 @@ function loadPlayerData() {
     } } catch(e){}
     return defaultPlayerData();
 }
-function saveData() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(playerData)); } catch(e){} }
+// ─── CLOUD SAVE: saveData saves to both localStorage AND Firebase ─
+function saveData() {
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(playerData)); } catch(e) {}
+    // Mirror to Firebase if Google user is logged in
+    if (typeof db !== 'undefined' && db &&
+        typeof currentUser !== 'undefined' && currentUser && !currentUser.isAnonymous) {
+        try { db.ref('playerSave/' + currentUser.uid).set(playerData); } catch(e) {}
+    }
+}
+
+// ─── CLOUD SAVE: load playerData from Firebase after Google login ──
+async function loadPlayerDataFromFirebase(uid) {
+    if (typeof db === 'undefined' || !db || !uid) return;
+    try {
+        const snap = await db.ref('playerSave/' + uid).get();
+        if (!snap.exists()) {
+            // First login ever — upload current local data as the cloud save
+            await db.ref('playerSave/' + uid).set(playerData);
+            if (typeof showToast === 'function')
+                showToast('☁️ Progress บันทึกขึ้น Cloud แล้ว!', '#4ade80');
+            return;
+        }
+        const cloudData = snap.val();
+        // Compare by total card count to decide which save is richer
+        const cloudTotal = Object.values(cloudData.collection || {}).reduce((a, b) => a + b, 0);
+        const localTotal = Object.values(playerData.collection || {}).reduce((a, b) => a + b, 0);
+
+        if (cloudTotal >= localTotal) {
+            // Cloud wins — load cloud data
+            playerData = migratePlayerData(cloudData);
+            try { localStorage.setItem(SAVE_KEY, JSON.stringify(playerData)); } catch(e) {}
+            if (typeof showToast === 'function')
+                showToast('☁️ โหลด Progress จาก Cloud สำเร็จ! (' + cloudTotal + ' การ์ด)', '#60a5fa');
+        } else {
+            // Local is richer — push local up to cloud
+            await db.ref('playerSave/' + uid).set(playerData);
+            if (typeof showToast === 'function')
+                showToast('☁️ Sync Progress ขึ้น Cloud สำเร็จ! (' + localTotal + ' การ์ด)', '#4ade80');
+        }
+        if (typeof updateHubUI === 'function') updateHubUI();
+        if (typeof checkCollectionMilestones === 'function') checkCollectionMilestones();
+    } catch(e) {
+        console.warn('[CloudSave] loadPlayerDataFromFirebase failed:', e);
+    }
+}
 
 playerData = loadPlayerData();
 
@@ -925,8 +969,35 @@ function renderHomePanel() {
     const xpCap = level >= 50 ? '∞' : getXpCapForLevel(level).toLocaleString();
     const xpPct = level >= 50 ? 100 : Math.min(100, Math.round(xp / getXpCapForLevel(level) * 100));
     const equippedTitle = playerData.equippedTitle;
+
+    // ── Cloud Save Banner ────────────────────────────────────────────
+    const isLoggedIn = (typeof currentUser !== 'undefined') && currentUser && !currentUser.isAnonymous;
+    const cloudBanner = isLoggedIn
+        ? `<div style="background:linear-gradient(135deg,#064e3b,#065f46);border:1px solid #10b981;border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:10px">
+            <span style="font-size:1.5rem">☁️</span>
+            <div style="flex:1">
+                <div style="font-weight:800;color:#34d399;font-size:0.9rem">Cloud Save เปิดใช้งาน</div>
+                <div style="font-size:0.72rem;color:#6ee7b7">Progress ของคุณบันทึกอัตโนมัติ — ล้าง Cache ก็ไม่หาย!</div>
+                <div style="font-size:0.7rem;color:#9ca3af;margin-top:2px">บัญชี: ${currentUser.displayName || currentUser.email || ''}</div>
+            </div>
+            <button onclick="googleLogout()" style="background:#374151;color:#9ca3af;border:none;border-radius:8px;padding:6px 10px;font-size:0.72rem;cursor:pointer">ออก</button>
+          </div>`
+        : `<div style="background:linear-gradient(135deg,#1a1a2e,#1e1b4b);border:2px solid #f97316;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:10px">
+            <span style="font-size:1.5rem">⚠️</span>
+            <div style="flex:1">
+                <div style="font-weight:900;color:#fb923c;font-size:0.9rem">Progress ยังไม่ได้บันทึก Cloud!</div>
+                <div style="font-size:0.72rem;color:#fed7aa">ล้าง Cache หรือเปลี่ยนอุปกรณ์ = ข้อมูลหาย — Login ด้วย Google เพื่อบันทึก</div>
+            </div>
+            <button onclick="googleLogin()" style="background:#4285f4;color:white;border:none;border-radius:8px;padding:8px 14px;font-size:0.8rem;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px">
+                <span style="background:white;color:#4285f4;border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:900">G</span>
+                Login
+            </button>
+          </div>`;
+    // ────────────────────────────────────────────────────────────────
+
     document.getElementById('hub-panel-home').innerHTML = `
     <div style="display:flex;flex-direction:column;gap:16px;max-width:640px;margin:0 auto;padding:16px;">
+      ${cloudBanner}
       <!-- Rank Card -->
       <div class="hub-card" style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid ${rank.colorHex};padding:24px;border-radius:20px;box-shadow:0 0 30px ${rank.colorHex}44">
         <div style="display:flex;align-items:center;gap:16px">

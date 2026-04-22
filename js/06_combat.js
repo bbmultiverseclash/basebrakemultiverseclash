@@ -1370,6 +1370,12 @@ if (symbolBlock && actualTarget.id !== symbolBlock.id) {
                         else avatar.style.display = 'none';
                         const statsBtn = document.getElementById('auth-stats-btn');
                         if (statsBtn) statsBtn.style.display = 'inline-block';
+                        // ── CLOUD SAVE: Load playerData from Firebase on login ──
+                        if (typeof loadPlayerDataFromFirebase === 'function') {
+                            loadPlayerDataFromFirebase(user.uid);
+                        }
+                        // Update hub login bar if present
+                        if (typeof updateHubLoginBar === 'function') updateHubLoginBar(user);
                     }
                 } else {
                     isGuestUser = false;
