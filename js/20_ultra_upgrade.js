@@ -584,5 +584,42 @@ document.addEventListener('DOMContentLoaded', () => {
             _origRenderPacksPanel.apply(this, arguments);
             _appendUltraUpgradeSection();
         };
+    }if (typeof REDEEM_CODES !== 'undefined') {
+        REDEEM_CODES['KJ99MGM1'] = { ultraCard: 'megumin', theme: 'isekai_adventure', label: '💥 megumin', oneTime: true };
+        REDEEM_CODES['PL00WHAL'] = { ultraCard: 'White Whale', theme: 'isekai_adventure', label: '🐋 White Whale', oneTime: true };
+    }
+
+    if (typeof redeemCode === 'function') {
+        const _origRedeem_ultraCards = window.redeemCode;
+        window.redeemCode = function() {
+            const raw = document.getElementById('redeem-input')?.value?.trim().toUpperCase();
+            const reward = (typeof REDEEM_CODES !== 'undefined') ? REDEEM_CODES[raw] : null;
+
+            if (reward && reward.ultraCard) {
+                const msg = document.getElementById('redeem-msg');
+                const used = typeof getUsedCodes === 'function' ? getUsedCodes() : [];
+                
+                if (used.includes(raw)) {
+                    if (msg) { msg.style.color='#f87171'; msg.textContent='❌ โค้ดนี้ใช้ไปแล้ว'; }
+                    return;
+                }
+
+                const key = `${reward.ultraCard}|${reward.theme}`;
+                playerData.collection[key] = (playerData.collection[key] || 0) + 1;
+                
+                if (typeof saveData === 'function') saveData();
+                if (typeof markCodeUsed === 'function') markCodeUsed(raw);
+                if (typeof updateHubUI === 'function') updateHubUI();
+                
+                if (msg) { 
+                    msg.style.color='#fbbf24'; 
+                    msg.textContent=`🎉 ได้รับ ${reward.label} เพิ่มใน Collection แล้ว!`; 
+                }
+                if (typeof showToast === 'function') showToast(`🎁 รับ ${reward.ultraCard} สำเร็จ!`, '#fbbf24');
+                document.getElementById('redeem-input').value = '';
+                return;
+            }
+            _origRedeem_ultraCards.apply(this, arguments);
+        };
     }
 });
