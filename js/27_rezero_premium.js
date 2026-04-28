@@ -1815,5 +1815,550 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof window.initiateAttack === 'function') {
         window.initiateAttack = withImmunity(window.initiateAttack, 'attack');
     }
+// ============================================================
+// 30_rezero_part2_and_dungeon.js — Re:Zero Normal Shop, White Whale Dungeon & Fixes
+// วางต่อท้ายสุดของไฟล์
+// ============================================================
 
+const NEW_REZERO_CARDS = {
+    'Daphne': {
+        name: 'Daphne', type: 'Character', cost: 10, atk: 4, hp: 5, maxHp: 5,
+        text: 'Witch of Gluttony | Ongoing: ลด Cost ของการ์ด Great Rabbit, Black Serpent และ White Whale ในมือลง 5',
+        color: 'bg-stone-800', maxAttacks: 1, shopOnly: true,
+        art: 'https://file.garden/aeeLCXSsJxTPrRbp/5e7f9f4f2a56b95ae39064383f077905.jpg', _theme: 'isekai_adventure'
+    },
+    'Halibel': {
+        name: 'Halibel', type: 'Character', cost: 9, atk: 5, hp: 7, maxHp: 7,
+        text: 'Ongoing: โจมตี 2 ครั้ง | โดนโจมตี: ถ้าศัตรูมี DMG > 3 มีโอกาส 50% หลบหลีก | โจมตี: 30% แปะ "Halibel Mark" (ATK ศัตรูเหลือ 1, จบเทิร์นศัตรูโดน 2 ดาเมจ จนกว่า Halibel จะตาย)',
+        color: 'bg-indigo-900', maxAttacks: 2, shopOnly: true,
+        art: 'https://file.garden/aeeLCXSsJxTPrRbp/1777394220471.jpg', _theme: 'isekai_adventure'
+    },
+    'Julius': {
+        name: 'Julius', type: 'Character', cost: 7, atk: 5, hp: 6, maxHp: 6,
+        text: 'On Summon: สุ่มรับวิญญาณเวท 1 ใบขึ้นมือ (Nia, Ikua หรือ Ines) โดยเวทจะ Cost 0',
+        color: 'bg-yellow-700', maxAttacks: 1, shopOnly: true,
+        art: 'https://file.garden/aeeLCXSsJxTPrRbp/592dc68ed2cb5704378372802fcf3e5c.jpg', _theme: 'isekai_adventure'
+    },
+    'Nia': {
+        name: 'Nia', type: 'Spell', cost: 0,
+        text: 'ทำ 3 ดาเมจใส่ศัตรู 1 ตัว และทำให้เป้าหมายติด Burn 2 เทิร์น',
+        color: 'bg-red-500', requiresTarget: true, targetEnemy: true,
+        art: 'https://file.garden/aeeLCXSsJxTPrRbp/1777394489276.png', _theme: 'isekai_adventure'
+    },
+    'Ikua': {
+        name: 'Ikua', type: 'Spell', cost: 0,
+        text: 'ฟื้นฟู HP เต็มให้พันธมิตร 1 ตัว และเพิ่ม Max HP +4',
+        color: 'bg-lime-500', requiresTarget: true, targetEnemy: false,
+        art: 'https://file.garden/aeeLCXSsJxTPrRbp/1777394535637.png', _theme: 'isekai_adventure'
+    },
+    'Ines': {
+        name: 'Ines', type: 'Spell', cost: 0,
+        text: 'ทำลายศัตรูแบบสุ่ม 1 ตัว ที่มี Cost 8 หรือต่ำกว่า',
+        color: 'bg-gray-200 text-black', requiresTarget: false,
+        art: 'https://file.garden/aeeLCXSsJxTPrRbp/592dc68ed2cb5704378372802fcf3e5c.jpg', _theme: 'isekai_adventure'
+    }
+};
+
+const NEW_REZERO_ARTSTYLES = {
+    'petelgeuse_icecream': { id: 'petelgeuse_icecream', label: 'Petelgeuse - Ice Cream Time', emoji: '🍦', targetCard: 'Petelgeuse Romanée-Conti', art: 'https://file.garden/aeeLCXSsJxTPrRbp/00250f82436f9ddefd0ee2649b4bf0a4.jpg', shopCost: 10, currency: 'rezero' },
+    'echidna_contract':    { id: 'echidna_contract',    label: 'Echidna - Contract with Devil', emoji: '📜', targetCard: 'Echidna',                  art: 'https://file.garden/aeeLCXSsJxTPrRbp/e9aae68d9988ba62746cf18e17457140.jpg', shopCost: 10, currency: 'rezero' },
+    'garfiel_beast':       { id: 'garfiel_beast',       label: 'Garfiel - Beastmode',           emoji: '🐅', targetCard: 'Garfiel Tinsel',           art: 'https://file.garden/aeeLCXSsJxTPrRbp/c7245b69e3d9890f2c339795d3bbf65d.jpg', shopCost: 10, currency: 'rezero' },
+    'fairy_mystic':        { id: 'fairy_mystic',        label: 'Fairy - Mysterious Magic',      emoji: '🧚', targetCard: 'Fairy',                    art: 'https://file.garden/aeeLCXSsJxTPrRbp/1777395017940.jpg', shopCost: 10, currency: 'rezero' },
+    'chess_royal':         { id: 'chess_royal',         label: 'Chess Board - Royal Selection', emoji: '♟️', targetCard: 'Chess Board',              art: 'https://file.garden/aeeLCXSsJxTPrRbp/1777395012365.jpg', shopCost: 10, currency: 'rezero' },
+    'pandora_white':       { id: 'pandora_white',       label: 'Pandora - Eternal White',       emoji: '🤍', targetCard: 'Pandora',                  art: 'https://file.garden/aeeLCXSsJxTPrRbp/1777395033109.jpg', shopCost: 10, currency: 'rezero' },
+    'roswaal_puppet':      { id: 'roswaal_puppet',      label: 'Roswaal - Arcane Puppeteer',    emoji: '🤡', targetCard: 'Roswaal L. Mathers',       art: 'https://file.garden/aeeLCXSsJxTPrRbp/1777395037643.jpg', shopCost: 10, currency: 'rezero' },
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    // 1. Inject New Cards & Artstyles
+    if (typeof CardSets !== 'undefined') {
+        if (!CardSets['isekai_adventure']) CardSets['isekai_adventure'] = {};
+        Object.entries(NEW_REZERO_CARDS).forEach(([k, v]) => {
+            CardSets['isekai_adventure'][k] = JSON.parse(JSON.stringify(v));
+        });
+    }
+    if (typeof ARTSTYLE_CFG !== 'undefined') {
+        Object.assign(ARTSTYLE_CFG, NEW_REZERO_ARTSTYLES);
+    }
+
+    // 2. New Redeem Code
+    if (typeof REDEEM_CODES !== 'undefined') {
+        REDEEM_CODES['SORRYFORBUGSV2'] = { bp: 10000, label: '⭐ 10,000 BP', oneTime: true };
+    }
+
+    if (typeof window.redeemCode === 'function') {
+        const _origRDM = window.redeemCode;
+        window.redeemCode = function() {
+            const raw = document.getElementById('redeem-input')?.value?.trim().toUpperCase();
+            const reward = (typeof REDEEM_CODES !== 'undefined') ? REDEEM_CODES[raw] : null;
+            if (reward && reward.bp) {
+                const used = typeof getUsedCodes === 'function' ? getUsedCodes() :[];
+                const msg = document.getElementById('redeem-msg');
+                if (reward.oneTime && used.includes(raw)) {
+                    if (msg) { msg.style.color='#f87171'; msg.textContent='❌ โค้ดนี้ใช้ไปแล้ว'; } return;
+                }
+                if (typeof window.addBattlePoints === 'function') window.addBattlePoints(reward.bp);
+                if (typeof markCodeUsed === 'function') markCodeUsed(raw);
+                if (msg) { msg.style.color='#fbbf24'; msg.textContent=`🎉 ได้รับ ${reward.label} เรียบร้อยแล้ว!`; }
+                if (typeof showToast === 'function') showToast(`🎁 รับ ${reward.bp} BP สำเร็จ!`, '#fbbf24');
+                document.getElementById('redeem-input').value = '';
+                return;
+            }
+            _origRDM.apply(this, arguments);
+        };
+    }
+
+    // 3. ปรับปรุง Re:Zero Shop ให้รวมการ์ดใหม่ (Daphne, Halibel, Julius)
+    if (typeof window.renderRezeroShop === 'function') {
+        window.renderRezeroShop = function() {
+            const ov = document.getElementById('_rezero-shop-overlay');
+            if (!ov) return;
+
+            const tk = playerData.rezeroTokens || 0;
+            const gemsBought = playerData.rezeroGemsBought || 0;
+            const bundleBought = playerData.rezeroBundleBought || false;
+
+            const shopItems =[
+                { id: 'Daphne', type: 'card', cost: 50 },
+                { id: 'Reid Astrea', type: 'card', cost: 35 },
+                { id: 'Volcanica the Protecter Dragon', type: 'card', cost: 35 },
+                { id: 'Halibel', type: 'card', cost: 25 },
+                { id: 'Julius', type: 'card', cost: 25 },
+                { id: 'bn_rezero', type: 'banner', cost: 20, label: 'Banner: Reinhard vs Volcanica' },
+                { id: 'Aldebaran', type: 'card', cost: 15 },
+                { id: 'Roswaal L. Mathers', type: 'card', cost: 15 }
+            ];
+
+            const itemRows = shopItems.map(item => {
+                let owned = 0, art = '', name = item.id, desc = '';
+                if (item.type === 'card') {
+                    owned = playerData.collection[`${item.id}|isekai_adventure`] || 0;
+                    const cData = CardSets['isekai_adventure'][item.id] || REZERO_CARDS[item.id];
+                    art = cData.art;
+                    desc = `Cost ${cData.cost} · ATK ${cData.atk}/HP ${cData.hp}`;
+                } else {
+                    owned = (playerData.unlockedCosmetics ||[]).includes(item.id) ? 1 : 0;
+                    art = COSMETICS_CATALOG.banners.find(b => b.id === item.id).art;
+                    desc = 'Profile Banner';
+                    name = item.label;
+                }
+
+                const canBuy = tk >= item.cost;
+                return `<div style="background:#1e1b4b;border:1.5px solid ${canBuy?'#a855f7':'#374151'};border-radius:12px;padding:10px;display:flex;align-items:center;gap:10px">
+                  <img src="${art}" style="width:48px;height:58px;object-fit:cover;border-radius:6px;border:1px solid #4c1d95">
+                  <div style="flex:1;min-width:0">
+                    <div style="font-weight:900;color:white;font-size:0.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</div>
+                    <div style="font-size:0.6rem;color:#a78bfa;">${desc}</div>
+                    <div style="font-size:0.55rem;color:#9ca3af;margin-top:2px">มีแล้ว: ${owned}</div>
+                  </div>
+                  <button onclick="buyRezeroItem('${item.id}', '${item.type}', ${item.cost})" ${canBuy?'':'disabled'}
+                    style="background:${canBuy?'linear-gradient(135deg,#7c3aed,#4f46e5)':'#374151'};color:${canBuy?'white':'#9ca3af'};border:none;padding:8px 12px;border-radius:8px;font-weight:900;font-size:0.8rem;cursor:${canBuy?'pointer':'not-allowed'};min-width:60px">
+                    ${RZ_TOKEN_IMG} ${item.cost}
+                  </button>
+                </div>`;
+            }).join('');
+
+            ov.innerHTML = `
+            <div style="background:linear-gradient(135deg,#0d0b2e,#1a0b2e);border:2.5px solid #a855f7;border-radius:24px;padding:20px;max-width:440px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 0 50px rgba(168,85,247,0.3)">
+              
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                <div><div style="font-size:1.3rem;font-weight:900;color:#c084fc">${RZ_TOKEN_IMG} Re:Zero Shop</div></div>
+                <div style="background:#1f2937;border:1px solid #a855f7;border-radius:10px;padding:6px 12px;text-align:center">
+                  <div style="font-size:0.55rem;color:#9ca3af">Premium Token</div>
+                  <div style="font-size:1.1rem;font-weight:900;color:#c084fc" id="modal-rz-tk">${tk}</div>
+                </div>
+              </div>
+
+              <!-- Gacha Tokens -->
+              <div style="background:#1e1b4b;border:1.5px dashed #8b5cf6;border-radius:12px;padding:12px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
+                <div style="font-size:2rem">💎</div>
+                <div style="flex:1">
+                  <div style="font-weight:900;color:#ddd;font-size:0.8rem">สุ่มรับ 1-20 Premium Tokens!</div>
+                  <div style="font-size:0.65rem;color:#a78bfa">ใช้ 20 Gems (ซื้อได้ 5 ครั้ง)</div>
+                  <div style="font-size:0.6rem;color:#9ca3af;margin-top:2px">ซื้อไปแล้ว ${gemsBought}/5 ครั้ง</div>
+                </div>
+                <button onclick="buyTokensWithGems()" ${gemsBought >= 5 ? 'disabled' : ''} style="background:${gemsBought >= 5 ? '#374151' : 'linear-gradient(135deg,#0284c7,#2563eb)'};color:white;border:none;padding:8px 12px;border-radius:8px;font-weight:900;font-size:0.8rem;cursor:${gemsBought >= 5 ? 'not-allowed' : 'pointer'}">
+                  20 💎
+                </button>
+              </div>
+
+              <!-- Bundle -->
+              <div style="background:linear-gradient(135deg,#310000,#000000);border:2px solid #ef4444;border-radius:12px;padding:12px;margin-bottom:16px;display:flex;align-items:center;gap:12px;box-shadow:0 0 15px rgba(239,68,68,0.2)">
+                <img src="${CardSets['isekai_adventure']['Black Serpent']?.art || ''}" style="width:48px;height:58px;border-radius:6px;border:1px solid #f87171;object-fit:cover">
+                <div style="flex:1">
+                  <div style="font-weight:900;color:#fca5a5;font-size:0.85rem">🐍 Black Serpent Bundle</div>
+                  <div style="font-size:0.6rem;color:#f87171">รับการ์ด Black Serpent + กรอบ Return by Death <span style="color:#c084fc;font-weight:bold;"><br>+ ${RZ_TOKEN_IMG} 35 Premium Tokens</span></div>
+                  <div style="font-size:0.55rem;color:#9ca3af;margin-top:2px">ซื้อได้ครั้งเดียวเท่านั้น!</div>
+                </div>
+                <button onclick="buyRezeroBundle()" ${bundleBought ? 'disabled' : ''} style="background:${bundleBought ? '#374151' : 'linear-gradient(135deg,#dc2626,#991b1b)'};color:white;border:none;padding:8px 12px;border-radius:8px;font-weight:900;font-size:0.8rem;cursor:${bundleBought ? 'not-allowed' : 'pointer'}">
+                  ${bundleBought ? '✅ มีแล้ว' : '80 💎'}
+                </button>
+              </div>
+
+              <!-- Items -->
+              <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">${itemRows}</div>
+              
+              <button onclick="renderUnifiedArtstyleShop()" style="width:100%;background:linear-gradient(135deg,#1e1b4b,#2e1065);color:#c084fc;border:1px solid #a855f7;padding:10px;border-radius:10px;font-weight:bold;margin-bottom:12px;cursor:pointer">🎨 ดู Artstyle Shop ทั้งหมด</button>
+
+              <button onclick="document.getElementById('_rezero-shop-overlay').remove()" style="width:100%;background:#374151;color:#9ca3af;border:none;padding:12px;border-radius:10px;font-weight:bold;cursor:pointer">✕ ปิด</button>
+            </div>`;
+        };
+    }
+
+    // 4. แก้ไขบัค Shadow Hand Taunt & เพิ่มกลไก Halibel
+    if (typeof window.initiateAttack === 'function') {
+        const _origInitAtk = window.initiateAttack;
+        window.initiateAttack = function(atkId, tgtId, isBase) {
+            if (!isBase && typeof state !== 'undefined') {
+                const atkKey = state.currentTurn;
+                const defKey = atkKey === 'player' ? 'ai' : 'player';
+                const attacker = state.players[atkKey].field.find(c => c.id === atkId);
+                let target = state.players[defKey].field.find(c => c.id === tgtId);
+
+                // --- 4.1. แก้ไข Shadow Hand Taunt ---
+                const shadowHand = state.players[defKey].field.find(c => (c.originalName || c.name) === 'Shadow Hand' && c.hp > 0);
+                if (shadowHand && target && target.id !== shadowHand.id) {
+                    arguments[1] = shadowHand.id;
+                    target = shadowHand;
+                    if (typeof log === 'function') log(`🖐️ [Shadow Hand] มือมืดดึงดูดการโจมตี! รับดาเมจแทน!`, 'text-stone-400 font-bold');
+                }
+
+                // --- 4.2. Halibel Evade ---
+                if (target && (target.originalName || target.name) === 'Halibel' && !target.silenced) {
+                    const estimatedDmg = getCharStats(attacker).atk; // ประเมินดาเมจคร่าวๆ
+                    if (estimatedDmg > 3 && Math.random() < 0.5) {
+                        if (typeof log === 'function') log(`🥷 [Halibel] การโจมตีแรงไป! นินจาหมาป่าพริ้วตัวหลบ 50% สำเร็จ!`, 'text-indigo-300 font-bold');
+                        attacker.attacksLeft -= 1;
+                        state.selectedCardId = null;
+                        if (typeof updateUI === 'function') updateUI();
+                        return; // หลบได้ ไม่เกิดดาเมจ
+                    }
+                }
+
+                // --- 4.3. Halibel Mark ---
+                if (attacker && (attacker.originalName || attacker.name) === 'Halibel' && !attacker.silenced && Math.random() < 0.3) {
+                    if (target) {
+                        target._halibelMark = attacker.id;
+                        if (typeof log === 'function') log(`🗡️ [Halibel] ฝากรอยแค้น! ${target.name} ติด Halibel Mark! (ATK เหลือ 1 และเสียเลือดทุกเทิร์น)`, 'text-indigo-400 font-bold');
+                    }
+                }
+            }
+
+            _origInitAtk.apply(this, arguments);
+        };
+    }
+
+    // 5. กลไก Daphne (ลด Cost) และ Halibel Mark (ลด ATK)
+    if (typeof window.getActualCost === 'function') {
+        const _origGetActualCost = window.getActualCost;
+        window.getActualCost = function(card, pk) {
+            let cost = _origGetActualCost.apply(this, arguments);
+            const eff = card.originalName || card.name;
+            if (['Great Rabbit', 'Black Serpent', 'White Whale'].includes(eff)) {
+                const hasDaphne = state.players[pk].field.some(c => (c.originalName || c.name) === 'Daphne' && c.hp > 0 && !c.silenced);
+                if (hasDaphne) {
+                    cost = Math.max(0, cost - 5);
+                }
+            }
+            return cost;
+        };
+    }
+
+    if (typeof window.getCharStats === 'function') {
+        const _origGetCharStats = window.getCharStats;
+        window.getCharStats = function(char) {
+            let stats = _origGetCharStats.apply(this, arguments);
+            // Halibel Mark = ATK 1
+            if (char._halibelMark) {
+                stats.atk = 1;
+            }
+            // ดันเจี้ยน White Whale - Field Animal Kingdom พิเศษ +5/+5
+            if (state.sharedFieldCard && state.sharedFieldCard.name === 'Wild Kingdom' && char.isDungeonBoss2) {
+                // ปกติ Wild Kingdom ให้ +3/+3 แล้ว เราบวกเพิ่มอีก +2/+2 เพื่อให้กลายเป็น +5/+5
+                stats.atk += 2;
+                stats.hp += 2;
+                stats.maxHp += 2;
+            }
+            return stats;
+        };
+    }
+
+    // 6. Halibel Mark Damage (End Turn)
+    if (typeof window.resolveEndPhase === 'function') {
+        const _origResolveEndPhase = window.resolveEndPhase;
+        window.resolveEndPhase = function(pk) {
+            _origResolveEndPhase.apply(this, arguments);
+            const p = state.players[pk];
+            p.field.forEach(c => {
+                if (c._halibelMark) {
+                    const haliOwner = pk === 'player' ? 'ai' : 'player';
+                    const haliAlive = state.players[haliOwner].field.some(x => x.id === c._halibelMark && x.hp > 0);
+                    if (haliAlive) {
+                        c.hp -= 2;
+                        if (typeof log === 'function') log(`🩸 [Halibel Mark] พิษบาดแผลกำเริบ! ${c.name} เสีย 2 HP`, 'text-indigo-400');
+                    } else {
+                        c._halibelMark = null; // ลบล้างเมื่อ Halibel ตาย
+                        if (typeof log === 'function') log(`💨 [Halibel Mark] คลายอาคม! Halibel ตายแล้ว`, 'text-gray-400');
+                    }
+                }
+            });
+            if (typeof checkDeath === 'function') checkDeath(pk);
+        };
+    }
+
+    // 7. Julius On Summon (สุ่ม Spell)
+    if (typeof window.triggerOnSummon === 'function') {
+        const _origSummon = window.triggerOnSummon;
+        window.triggerOnSummon = function(card, pk) {
+            _origSummon.apply(this, arguments);
+            const eff = card.originalName || card.name;
+            if (eff === 'Julius' && !card.silenced) {
+                const spells = ['Nia', 'Ikua', 'Ines'];
+                const pick = spells[Math.floor(Math.random() * spells.length)];
+                const sp = typeof createCardInstance === 'function' ? createCardInstance(pick, 'isekai_adventure') : null;
+                if (sp) {
+                    sp.cost = 0;
+                    state.players[pk].hand.push(sp);
+                    if (typeof log === 'function') log(`✨ [Julius] ระบำวิญญาณ! ดึงเวทมนตร์ ${pick} (Cost 0) ขึ้นมือ!`, 'text-yellow-400 font-bold');
+                }
+            }
+        };
+    }
+
+    // 8. Spell ของ Julius (Nia, Ikua ใน resolveTargetedPlay / Ines ใน executeNonTargetAction)
+    if (typeof window.resolveTargetedPlay === 'function') {
+        const _origTgt = window.resolveTargetedPlay;
+        window.resolveTargetedPlay = function(pk, srcId, tgtId) {
+            const p = state.players[pk];
+            const card = p.hand.find(c => c.id === srcId);
+            
+            if (card && (card.name === 'Nia' || card.name === 'Ikua')) {
+                const oppKey = pk === 'player' ? 'ai' : 'player';
+                const target = card.targetEnemy ? state.players[oppKey].field.find(c=>c.id===tgtId) : p.field.find(c=>c.id===tgtId);
+                
+                if (target) {
+                    if (card.name === 'Nia') {
+                        target.hp -= 3;
+                        if (!target.status.includes('Burn') && !target.tossakanImmune) {
+                            target.status.push('Burn');
+                            target.burnTurns = 2;
+                        }
+                        if (typeof log === 'function') log(`🔥 [Nia] วิญญาณเพลิง! 3 ดาเมจ และ Burn 2 เทิร์น!`, 'text-red-400 font-bold');
+                        if (typeof checkDeath === 'function') checkDeath(oppKey);
+                    }
+                    if (card.name === 'Ikua') {
+                        target.maxHp += 4;
+                        target.hp = target.maxHp;
+                        if (typeof log === 'function') log(`🌿[Ikua] วิญญาณพฤกษา! Heal เต็ม และเพิ่ม Max HP +4!`, 'text-lime-400 font-bold');
+                    }
+                    
+                    p.cost -= (typeof getActualCost === 'function' ? getActualCost(card, pk) : card.cost);
+                    p.hand.splice(p.hand.indexOf(card), 1);
+                    p.graveyard.push(card);
+                    if (typeof cancelTargeting === 'function') cancelTargeting();
+                    if (typeof updateUI === 'function') updateUI();
+                    return;
+                }
+            }
+            _origTgt.apply(this, arguments);
+        };
+    }
+
+    if (typeof window.executeNonTargetAction === 'function') {
+        const _origNonTgt = window.executeNonTargetAction;
+        window.executeNonTargetAction = function(card, pk) {
+            if (card.name === 'Ines') {
+                const oppKey = pk === 'player' ? 'ai' : 'player';
+                const enemies = state.players[oppKey].field.filter(c => getCharStats(c).hp > 0 && c.cost <= 8);
+                if (enemies.length > 0) {
+                    const target = enemies[Math.floor(Math.random() * enemies.length)];
+                    target.hp = -99;
+                    if (typeof log === 'function') log(`⚪ [Ines] วิญญาณแสง! ทำลาย ${target.name} ทันที!`, 'text-gray-300 font-bold');
+                    if (typeof checkDeath === 'function') checkDeath(oppKey);
+                } else {
+                    if (typeof log === 'function') log(`⚪[Ines] ไม่มีเป้าหมายที่ Cost <= 8`, 'text-gray-500');
+                }
+                state.players[pk].graveyard.push(card);
+                return;
+            }
+            _origNonTgt.apply(this, arguments);
+        };
+    }
+
+    // 9. เพิ่มดันเจี้ยนบอส White Whale ในหน้า UI
+    if (typeof window.renderDungeonPanel === 'function') {
+        const _origDungeon = window.renderDungeonPanel;
+        window.renderDungeonPanel = function() {
+            _origDungeon();
+            const pnl = document.getElementById('hub-panel-dungeon');
+            if (!pnl) return;
+
+            const timeStr = "เหลือเวลาอีก 5 วัน"; // ยึดตาม RZL_PACK_EXPIRY หรือจำลอง
+            let deckOptions = playerData.decks.map(deck => `<option value="${deck.id}">${deck.name}</option>`).join('');
+            if (!deckOptions) deckOptions = '<option value="">ไม่มีเด็คที่พร้อมเล่น</option>';
+            
+            const firstClear = playerData.dungeonCleared?.['white_whale'];
+
+            const bannerHTML = `
+            <!-- White Whale Banner -->
+            <div style="background:linear-gradient(135deg, #1e293b, #0f172a); border:2px solid #cbd5e1; border-radius:20px; padding:20px; display:flex; gap:20px; box-shadow:0 0 30px rgba(203,213,225,0.2); margin-top:20px;">
+                <div style="width:160px; height:220px; border-radius:12px; overflow:hidden; border:2px solid #e2e8f0; flex-shrink:0; box-shadow:0 0 20px rgba(226,232,240,0.3);">
+                    <img src="https://file.garden/aeeLCXSsJxTPrRbp/file_00000000f4e071fa9791b97d3456c4f7.png" style="width:100%;height:100%;object-fit:cover;">
+                </div>
+                
+                <div style="flex:1;">
+                    <div style="color:#e2e8f0; font-weight:900; font-size:0.8rem; letter-spacing:1px; margin-bottom:4px;">🐋 LIMITED TIME EVENT</div>
+                    <div style="font-size:2rem; font-weight:900; color:white; margin-bottom:4px; line-height:1;">White Whale & The Witches</div>
+                    <div style="color:#9ca3af; font-size:0.85rem; margin-bottom:12px;">วาฬขาวแห่งหมอกและมหาบาป! สัมผัสความสิ้นหวัง 65 ใบ<br><b style="color:#4ade80;">ด่านนี้ *ไม่มีการ์ดแบน* จัดเต็มได้เลย!</b><br><b style="color:#f87171;">⏰ ${timeStr}</b></div>
+                    
+                    <div style="background:rgba(0,0,0,0.5); padding:12px; border-radius:10px; border:1px solid #334155; margin-bottom:16px; font-size:0.85rem;">
+                        <div style="color:#fbbf24; font-weight:900; margin-bottom:6px;">🏆 ของรางวัลการท้าทาย:</div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                            <div style="color:white;">🥇 ชนะครั้งแรก: รับ <b>Daphne</b> (Exclusive)</div>
+                            <div style="color:white;">💎 ทุกครั้งที่ชนะ: รับ <b>10 Gems</b></div>
+                        </div>
+                        <div style="margin-top:8px; font-weight:bold; color:${firstClear ? '#4ade80' : '#f87171'};">
+                            ${firstClear ? '✅ ผ่านแล้ว (ได้รับ Daphne แล้ว)' : '❌ ยังไม่เคยผ่านบอสตัวนี้'}
+                        </div>
+                    </div>
+
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <select id="dungeon-deck-select-2" style="background:#1f2937; color:white; border:1px solid #4b5563; padding:12px; border-radius:10px; flex:1; font-size:0.9rem; font-weight:bold;">
+                            ${deckOptions}
+                        </select>
+                        <button onclick="startDungeon_v2('white_whale')" style="background:linear-gradient(135deg, #475569, #334155); color:white; font-weight:900; padding:12px 24px; border-radius:10px; border:1px solid #94a3b8; cursor:pointer; font-size:1rem; box-shadow:0 0 15px rgba(148,163,184,0.4); white-space:nowrap;">
+                            ⚔️ สู้บอส (ใช้ 5 🔑)
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+            
+            const wrapper = pnl.querySelector('div[style*="max-width:800px"]');
+            if (wrapper) {
+                // แทรกก่อนกรอบสีแดง (กฎการแบน)
+                const warningBox = wrapper.querySelector('div[style*="rgba(239,68,68,0.1)"]');
+                if (warningBox) {
+                    const temp = document.createElement('div');
+                    temp.innerHTML = bannerHTML;
+                    wrapper.insertBefore(temp.firstElementChild, warningBox);
+                } else {
+                    wrapper.innerHTML += bannerHTML;
+                }
+            }
+        };
+    }
+
+    // 10. ระบบเข้าเล่นดันเจี้ยน White Whale
+    window.startDungeon_v2 = function(dungeonId) {
+        if (dungeonId !== 'white_whale') return;
+
+        const deckId = document.getElementById('dungeon-deck-select-2').value;
+        const deck = playerData.decks.find(d => d.id === deckId);
+        if (!deck) { showToast('❌ กรุณาสร้างและเลือกเด็คก่อน', '#f87171'); return; }
+
+        if ((playerData.bossKeys || 0) < 5) { showToast('🔑 Boss Keys ไม่พอ! ต้องการ 5 อัน', '#f87171'); return; }
+
+        // หักกุญแจ
+        playerData.bossKeys -= 5;
+        saveData();
+
+        const deckCards = (deck.cards ||[]).map(c => typeof c === 'string' ? { name: c, theme: deck.theme || 'isekai_adventure' } : c);
+
+        _pendingCollectionDeck = deckCards;
+        _collectionDeckUsed = false;
+        _isRankedGame = false;
+        window.gameMode = 'dungeon'; 
+        window.currentDungeonId = dungeonId;
+
+        document.getElementById('hub-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = '';
+        const ts = document.getElementById('theme-selector');
+        if(ts) ts.style.display = 'none';
+
+        // จำลอง Deck ฝั่งบอส (White Whale Event)
+        const _origBuildDeck = window.buildDeck;
+        window.buildDeck = function(theme) {
+            if (theme === 'dungeon_boss') {
+                const bossDeck =[];
+                const makeBossCard = (name, t, costDiff, statDiff) => {
+                    const c = typeof createCardInstance === 'function' ? createCardInstance(name, t) : null;
+                    if(!c) return null;
+                    c.cost = Math.max(0, c.cost + costDiff);
+                    if (c.atk !== undefined) c.atk += statDiff;
+                    if (c.hp !== undefined) c.hp += statDiff;
+                    if (c.maxHp !== undefined) c.maxHp += statDiff;
+                    c.isDungeonBoss2 = true; 
+                    c.tossakanImmune = true; // Boss immunity
+                    return c;
+                };
+
+                // 20 White Whale (-3 cost, +3 stat) -> cost 7, +3
+                for(let i=0; i<20; i++) bossDeck.push(makeBossCard('White Whale', 'isekai_adventure', -3, 3));
+                // 15 Great Rabbit (-2 cost, +2 stat) -> cost 6, +2
+                for(let i=0; i<15; i++) bossDeck.push(makeBossCard('Great Rabbit', 'easter', -2, 2));
+                // 15 Black Serpent (-3 cost, +3 stat) -> cost 7, +3
+                for(let i=0; i<15; i++) bossDeck.push(makeBossCard('Black Serpent', 'isekai_adventure', -3, 3));
+                // 5 Daphne (+7 stat) -> cost 10, +7
+                for(let i=0; i<5; i++) bossDeck.push(makeBossCard('Daphne', 'isekai_adventure', 0, 7)); 
+                // 10 Wild Kingdom -> Field card
+                for(let i=0; i<10; i++) bossDeck.push(makeBossCard('Wild Kingdom', 'animal_kingdom', 0, 0));
+
+                return bossDeck.sort(() => Math.random() - 0.5);
+            }
+            return _origBuildDeck.call(this, theme);
+        };
+
+        selectedPlayerTheme = deck.theme || 'isekai_adventure';
+        selectedAITheme = 'dungeon_boss';
+        
+        if (typeof resetAndInitGame !== 'undefined') resetAndInitGame();
+
+        // เอาบอส White Whale ลงสนามเป็นตัวแรก
+        setTimeout(() => {
+            const ai = state.players.ai;
+            const boss = typeof createCardInstance === 'function' ? createCardInstance('White Whale', 'isekai_adventure') : null;
+            if (boss) {
+                boss.cost = 7; boss.atk += 3; boss.hp += 3; boss.maxHp += 3;
+                boss.attacksLeft = 1;
+                boss.tossakanImmune = true; 
+                boss.isDungeonBoss2 = true;
+                ai.field.push(boss);
+                updateUI();
+                if (typeof log === 'function') {
+                    log(`🐋 หมอกขาวปกคลุม... White Whale ปรากฏตัว!`, 'text-sky-300 font-bold');
+                }
+            }
+        }, 800);
+    };
+
+    // 11. Hook End Game สำหรับดันเจี้ยน White Whale
+    if (typeof window.endGame === 'function') {
+        const _origEnd_ww = window.endGame;
+        window.endGame = function(winner) {
+            _origEnd_ww.apply(this, arguments);
+            
+            if (window.gameMode === 'dungeon' && window.currentDungeonId === 'white_whale') {
+                if (winner === 'player') {
+                    if (!playerData.dungeonCleared) playerData.dungeonCleared = {};
+                    const isFirstClear = !playerData.dungeonCleared['white_whale'];
+                    
+                    playerData.gems = (playerData.gems || 0) + 10;
+                    let msg = "🎉 ชนะวาฬขาวสำเร็จ! ได้รับ 💎 10 Gems";
+
+                    if (isFirstClear) {
+                        playerData.dungeonCleared['white_whale'] = true;
+                        playerData.collection['Daphne|isekai_adventure'] = (playerData.collection['Daphne|isekai_adventure'] || 0) + 1;
+                        msg += " และการ์ดแม่มด 🌟 Daphne 🌟 1 ใบ!";
+                    }
+                    saveData();
+                    setTimeout(() => showToast(msg, '#4ade80'), 1500);
+                } else {
+                    setTimeout(() => showToast("💀 ถูกวาฬขาวลบเลือนหายไป...", '#f87171'), 1500);
+                }
+                window.gameMode = 'ai'; // Reset
+            }
+        };
+    }
+});
 });
