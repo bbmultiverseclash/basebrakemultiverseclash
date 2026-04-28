@@ -887,3 +887,800 @@ function _hookRezeroMechanics() {
         };
     }
 }
+// ============================================================
+// 28_rezero_ltd_pack.js — Re:Zero Limited Pack (Witch Cult & Camps)
+// จำกัดเวลา 5 วัน | เปิดได้ทีละ 1 ใบ | มีระบบ Animation Quotes
+// ============================================================
+
+const RZL_PACK_EXPIRY = new Date(Date.now() + (5 * 24 * 60 * 60 * 1000)); // หมดอายุในอีก 5 วันนับจากที่รันโค้ด (หรือเซ็ตวันที่แบบ Hardcode ได้)
+const RZL_PULL_COST = 1500; // ราคา 1,500 เหรียญทอง
+const RZL_THEME = 'isekai_adventure';
+
+// ─── CARD DATA ──────────────────────────────────────────────
+const _RZL_CARDS = {
+    'Beatrice': {
+        name: 'Beatrice', type: 'Character', cost: 6, atk: 2, hp: 6, maxHp: 6,
+        text: 'On reveal / On death: สร้างเวท "Contract" 2 ใบขึ้นมือ',
+        color: 'bg-pink-800', maxAttacks: 1, shopOnly: true, isRzl: true,
+        art: 'https://i.pinimg.com/736x/73/c7/18/73c7188737ff429a89826bbfbb0dc637.jpg'
+    },
+    'Sirius': {
+        name: 'Sirius', type: 'Character', cost: 7, atk: 5, hp: 6, maxHp: 6,
+        text: 'Ongoing: ลดดาเมจรับ 30% | On attack: เป้าหมายติด Paralyze 2 เทิร์น (หากเป้าหมายติด Paralyze อยู่แล้ว ทำดาเมจเพิ่ม +2)',
+        color: 'bg-red-900', maxAttacks: 1, shopOnly: true, isRzl: true,
+        art: 'https://i.pinimg.com/736x/ae/23/b0/ae23b026a8b9231b230baf0185325448.jpg'
+    },
+    'Echidna': {
+        name: 'Echidna', type: 'Character', cost: 8, atk: 3, hp: 5, maxHp: 5,
+        text: 'Ongoing: เมื่อคุณจั่วการ์ด +2 ATK / +2 HP (ทับซ้อนได้) | End Turn: ถ้ามี Character ในสนามเรา ≥2 ตัว (นับตัวนี้ด้วย) จั่วการ์ด 2 ใบ',
+        color: 'bg-slate-900', maxAttacks: 1, shopOnly: true, isRzl: true,
+        art: 'https://i.pinimg.com/736x/2f/4d/94/2f4d943524fee3ba120775ef2f3c77ff.jpg'
+    },
+    'Garfiel Tinsel': {
+        name: 'Garfiel Tinsel', type: 'Character', cost: 5, atk: 4, hp: 4, maxHp: 4,
+        text: 'On Summon: ได้รับเวท "Beastification" ในมือ | On death: ทำดาเมจ 1 ใส่ Base ศัตรู',
+        color: 'bg-amber-700', maxAttacks: 1, shopOnly: true, isRzl: true,
+        art: 'https://file.garden/aeeLCXSsJxTPrRbp/c1b5646f55fa2bd35a7e44d71acbe254.jpg'
+    },
+    'Pandora': {
+        name: 'Pandora', type: 'Character', cost: 10, atk: 5, hp: 8, maxHp: 8,
+        text: 'On Reveal: สุ่มศัตรูติด Paralyze 2 เทิร์น | On Attack: Base เรา -1 HP แต่ถ้าฆ่าสำเร็จ Base เรา +2 HP | On Death: ชุบชีวิตเต็ม 1 ครั้ง และร่าย On Reveal อีกครั้ง',
+        color: 'bg-stone-300 text-black', maxAttacks: 1, shopOnly: true, isRzl: true,
+        art: 'https://file.garden/aeeLCXSsJxTPrRbp/11a28ae8bc6b2df3cbb14814a6b5cac6.jpg'
+    },
+    'Regulus Corneas': {
+        name: 'Regulus Corneas', type: 'Character', cost: 9, atk: 4, hp: 5, maxHp: 5,
+        text: 'Summon / End Turn: ซ่อน Mark ไว้บนเพื่อนสุ่ม 1 ตัว (ศัตรูไม่เห็น) | Passive: ตราบใดที่มีตัวติด Mark มีชีวิตอยู่บนสนาม Regulus จะเป็นอมตะ (ดาเมจ = 0)',
+        color: 'bg-zinc-100 text-black', maxAttacks: 1, shopOnly: true, isRzl: true,
+        art: 'https://file.garden/aeeLCXSsJxTPrRbp/66fb74aebbe3356c5d286f5ca157856d.jpg'
+    },
+    'Petelgeuse Romanée-Conti': {
+        name: 'Petelgeuse Romanée-Conti', type: 'Character', cost: 8, atk: 5, hp: 3, maxHp: 3,
+        text: 'Summon: ร่าย "The Unseen Hand" (เรียกมือ 1/1 Taunt x2) | มือตาย: +1/+1 ให้เขา | ตาย: ถ้ามีศัตรูที่ Stat รวมน้อยกว่า ฆ่าศัตรูนั้น ดูด Stat มาเกิดใหม่ และร่าย Summon ซ้ำ',
+        color: 'bg-lime-900', maxAttacks: 1, shopOnly: true, isRzl: true,
+        art: 'https://file.garden/aeeLCXSsJxTPrRbp/ad7fab8c82685a6fd74d4a500e3879d2.jpg'
+    },
+    'Otto Suwen': {
+        name: 'Otto Suwen', type: 'Character', cost: 4, atk: 2, hp: 3, maxHp: 3,
+        text: 'On Summon: อัญเชิญ Character จากธีม Animal Kingdom 1 ตัวจากสำรับลงสนาม',
+        color: 'bg-emerald-800', maxAttacks: 1, shopOnly: true, isRzl: true,
+        art: 'https://file.garden/aeeLCXSsJxTPrRbp/23f463ab3d5f6947eb8a7f9dd5dd2c68.jpg'
+    },
+    'Cecilus Segmunt': {
+        name: 'Cecilus Segmunt', type: 'Character', cost: 9, atk: 4, hp: 8, maxHp: 8,
+        text: 'Summon: มอบดาบ Murasame และ Masayume ขึ้นมือ | Cost ของดาบจะลดลงตาม HP Base ของคุณที่หายไป (ใส่ได้แค่ Cecilus เท่านั้น)',
+        color: 'bg-blue-800', maxAttacks: 1, shopOnly: true, isRzl: true,
+        art: 'https://file.garden/aeeLCXSsJxTPrRbp/b8716bb23421d77b388b401b0b8a7c7e.jpg'
+    },
+    'Satella': {
+        name: 'Satella', type: 'Champion', cost: 12, atk: 12, hp: 12, maxHp: 12,
+        text: '♛ Champion | Summon: Paralyze ศัตรูทั้งหมด 1 เทิร์น | Death: จะไม่ตายแต่ลอยตัว (Levitate) และอมตะ 1 เทิร์น จากนั้นฟื้นคืนชีพเต็มและร่าย Summon อีกครั้ง',
+        color: 'bg-purple-950', maxAttacks: 1, isChampion: true, shopOnly: true, isRzl: true,
+        art: 'https://file.garden/aeeLCXSsJxTPrRbp/3b90ce1ced967cafc3add6c85f8cb997.jpg'
+    }
+};
+
+const _RZL_SPELLS = {
+    'Contract': {
+        name: 'Contract', type: 'Spell', cost: 2,
+        text: 'เลือกเพื่อน 1 ตัว: +3 ATK (เฉพาะเทิร์นนี้) | หากตัวนั้นตายในเทิร์นนี้ Base เรา Heal +1 HP',
+        color: 'bg-pink-600', requiresTarget: true, targetEnemy: false, _theme: RZL_THEME
+    },
+    'Beastification': {
+        name: 'Beastification', type: 'Spell', cost: 5,
+        text: 'Base เรา -1 HP จากนั้นบัฟ Garfiel Tinsel ในสนาม: +5 ATK, +5 HP และได้รับหลบหลีก 50% ถาวร',
+        color: 'bg-amber-600', requiresTarget: false, _theme: RZL_THEME
+    },
+    'The Unseen Hand': {
+        name: 'The Unseen Hand', type: 'Spell', cost: 3,
+        text: 'อัญเชิญ Shadow Hand (1/1 Taunt) 2 ตัวลงสนาม',
+        color: 'bg-stone-800', requiresTarget: false, _theme: RZL_THEME
+    },
+    'Shadow Hand': {
+        name: 'Shadow Hand', type: 'Character', cost: 0, atk: 1, hp: 1, maxHp: 1,
+        text: 'Taunt | เมื่อตาย: มอบ +1/+1 ให้ Petelgeuse', color: 'bg-stone-950', maxAttacks: 1, _theme: RZL_THEME
+    },
+    'Murasame': {
+        name: 'Murasame', type: 'Item', cost: 15,
+        text: 'ใส่ได้แค่ Cecilus: +5 ATK และทำให้โจมตีได้ 4 ครั้ง | Cost ลดตาม Base HP ที่หายไป',
+        color: 'bg-blue-600', requiresTarget: true, _theme: RZL_THEME
+    },
+    'Masayume': {
+        name: 'Masayume', type: 'Item', cost: 10,
+        text: 'ใส่ได้แค่ Cecilus: หากโจมตีแล้วเป้าหมายไม่ตาย จะทำลายเป้าหมายทันที (จากนั้นดาบเล่มนี้พัง) | Cost ลดตาม Base HP ที่หายไป',
+        color: 'bg-sky-600', requiresTarget: true, _theme: RZL_THEME
+    }
+};
+
+// ─── QUOTES สำหรับ ANIMATION ────────────────────────────────────
+const _RZL_QUOTES = {
+    'Beatrice': "ต้องให้เบ็ตตี้จัดการให้อีกแล้วงั้นเหรอ... ช่วยไม่ได้นะ ก็นี่แหละคือหน้าที่ของฉัน คาชิระ",
+    'Sirius': "อา... ความรัก ความรัก ความรัก! ทุกคนจงรับรู้ถึงความรักนี้สิคะ!",
+    'Echidna': "ความอยากรู้อยากเห็นเป็นสิ่งที่ไม่สิ้นสุด... เธอเองก็อยากทำสัญญากับฉันใช่ไหมล่ะ?",
+    'Garfiel Tinsel': "ข้าคือโล่แห่งดินแดนศักดิ์สิทธิ์! ใครกล้าเข้ามา ข้าจะขย้ำให้แหลก!",
+    'Pandora': "ทุกสิ่งเป็นไปตามที่ควรจะเป็น... เพื่อความรักและสันติสุขของโลกนี้",
+    'Regulus Corneas': "นี่มันเป็นการละเมิดสิทธิส่วนบุคคลของฉันนะ... แกกล้าดียังไงมาขัดจังหวะฉัน?",
+    'Petelgeuse Romanée-Conti': "สมองสั่น... สมองมันสั่นไปหมดแล้ววว! คุณช่างเกียจคร้านจริงๆ เดสสส!",
+    'Otto Suwen': "ทำไมฉันถึงซวยตลอดเลยล่ะเนี่ย... แต่ถึงอย่างนั้นก็ต้องช่วยให้ได้ล่ะนะ!",
+    'Cecilus Segmunt': "ฉันคือ 'สายฟ้าสีคราม' ตัวละครหลักของเวทีนี้ยังไงล่ะ!",
+    'Satella': "ฉันรักเธอ... รักเธอ... รักเธอ... ได้โปรด อย่าตายเลยนะ..."
+};
+
+const RZL_PULL_POOL = Object.keys(_RZL_CARDS);
+
+// ─── INJECT DATA & UI ───────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Inject Cards into Database
+    if (typeof CardSets !== 'undefined') {
+        if (!CardSets[RZL_THEME]) CardSets[RZL_THEME] = {};
+        Object.entries(_RZL_CARDS).forEach(([k, v]) => {
+            CardSets[RZL_THEME][k] = JSON.parse(JSON.stringify(v));
+        });
+        Object.entries(_RZL_SPELLS).forEach(([k, v]) => {
+            CardSets[RZL_THEME][k] = JSON.parse(JSON.stringify(v));
+        });
+    }
+
+    // 2. Patch UI - Append Pack
+    if (typeof renderPacksPanel === 'function') {
+        const _origRenderPacks = window.renderPacksPanel;
+        window.renderPacksPanel = function() {
+            _origRenderPacks.apply(this, arguments);
+            _appendRezeroLimitedPackSection();
+        };
+    }
+
+    // 3. Patch Mechanics
+    _hookRezeroLtdMechanics();
+});
+
+// ─── RENDER PACK SHOP SECTION ───────────────────────────────
+function _appendRezeroLimitedPackSection() {
+    const panel = document.getElementById('hub-panel-packs');
+    if (!panel) return;
+    const old = document.getElementById('_rzl-pack-sec');
+    if (old) old.remove();
+
+    const available = new Date() < RZL_PACK_EXPIRY;
+    const diff = RZL_PACK_EXPIRY - new Date();
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const countdown = diff <= 0 ? '⏰ หมดเขตแล้ว' : `⏳ เหลือ ${d} วัน ${h} ชม.`;
+
+    const coins = typeof playerData !== 'undefined' ? (playerData.coins || 0) : 0;
+    const canSingle = available && coins >= RZL_PULL_COST;
+
+    const sec = document.createElement('div');
+    sec.id = '_rzl-pack-sec';
+    sec.style.cssText = 'padding:0 0 24px';
+    sec.innerHTML = `
+    <!-- Divider -->
+    <div style="display:flex;align-items:center;gap:10px;margin:16px 0 14px">
+      <div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,#8b5cf6)"></div>
+      <div style="font-size:0.75rem;font-weight:900;color:#8b5cf6;letter-spacing:1px">📖 RE:ZERO LIMITED (SINGLE PULL)</div>
+      <div style="flex:1;height:1px;background:linear-gradient(90deg,#8b5cf6,transparent)"></div>
+    </div>
+
+    <!-- Pack Card -->
+    <div style="background:linear-gradient(135deg,#1e1b4b,#2e1065);
+         border:2.5px solid ${available ? '#8b5cf6' : '#374151'};border-radius:20px;overflow:hidden;
+         box-shadow:0 0 ${available ? '36px rgba(139,92,246,0.22)' : 'none'};margin-bottom:12px">
+
+      <div style="position:relative;height:130px;overflow:hidden">
+        <img src="https://i.pinimg.com/1200x/dd/88/f9/dd88f9ca170afb52e66093a6cf583b53.jpg"
+             style="width:100%;height:100%;object-fit:cover;object-position:top;filter:brightness(${available ? '0.5' : '0.22'})">
+        <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 20%,#1e1b4b)"></div>
+        <div style="position:absolute;top:10px;left:12px;
+             background:${available ? 'rgba(220,38,38,0.88)' : 'rgba(55,65,81,0.9)'};
+             border:1.5px solid ${available ? '#fca5a5' : '#4b5563'};
+             border-radius:20px;padding:3px 10px;font-size:0.64rem;font-weight:900;
+             color:${available ? '#fca5a5' : '#9ca3af'}">
+          ${available ? '⏱️ LIMITED · หมดในอีก 5 วัน' : '🔒 หมดเขตแล้ว'}</div>
+        <div style="position:absolute;bottom:10px;left:14px">
+          <div style="font-size:1.05rem;font-weight:900;color:white;text-shadow:0 2px 8px rgba(0,0,0,0.9)">
+            📖 Re:Zero Limited Pull</div>
+          <div style="font-size:0.66rem;color:${available ? '#c4b5fd' : '#6b7280'}">${countdown}</div>
+        </div>
+      </div>
+
+      <div style="padding:14px">
+        <div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none;">
+          ${RZL_PULL_POOL.map(n => {
+              const t = _RZL_CARDS[n];
+              return `<div style="background:#0f0f1a;border:1px solid #8b5cf644;border-radius:8px;overflow:hidden;min-width:60px;flex-shrink:0;">
+                <img src="${t.art}" style="width:100%;height:45px;object-fit:cover">
+                <div style="padding:2px;text-align:center;">
+                  <div style="font-size:0.45rem;font-weight:800;color:#c4b5fd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</div>
+                </div>
+              </div>`;
+          }).join('')}
+        </div>
+        <div style="background:rgba(139,92,246,0.1);border:1px solid #7c3aed;border-radius:10px;padding:6px 10px;margin-bottom:12px;font-size:0.63rem;color:#c4b5fd;text-align:center">
+          ✨ เปิดได้ทีละใบเท่านั้น! · Equal Rate 10% ทุกใบ · ไม่มีการ์ดเหล่านี้ในแพ็คปกติ
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="flex:1">
+            <div style="font-size:1.05rem;font-weight:900;color:${available ? '#fbbf24' : '#6b7280'}">
+              🪙 1,500 / ดึง 1 ใบ</div>
+          </div>
+          <button onclick="buyRezeroLtdSinglePack()"
+            ${canSingle ? '' : 'disabled'}
+            style="background:${canSingle ? 'linear-gradient(135deg,#7c3aed,#9333ea)' : '#374151'};
+                   color:${canSingle ? 'white' : '#6b7280'};border:none;
+                   padding:11px 24px;border-radius:12px;font-weight:900;font-size:0.9rem;
+                   cursor:${canSingle ? 'pointer' : 'not-allowed'};white-space:nowrap;
+                   box-shadow:${canSingle ? '0 0 14px rgba(139,92,246,0.4)' : 'none'}">
+            ${!available ? '🔒 หมดเขต' : coins < 1500 ? '🪙 ไม่พอ' : '🔮 สุ่มเลย!'}
+          </button>
+        </div>
+      </div>
+    </div>`;
+
+    const inner = panel.querySelector('div[style*="max-width:700px"]') || panel;
+    inner.appendChild(sec);
+}
+
+// ─── GACHA BUY & ANIMATION ───────────────────────────────────
+window.buyRezeroLtdSinglePack = function() {
+    if (new Date() >= RZL_PACK_EXPIRY) { showToast('⏰ Pack หมดเขตแล้ว!', '#f87171'); return; }
+    if (playerData.coins < RZL_PULL_COST) { showToast(`🪙 เหรียญไม่พอ!`, '#f87171'); return; }
+
+    playerData.coins -= RZL_PULL_COST;
+
+    const cardName = RZL_PULL_POOL[Math.floor(Math.random() * RZL_PULL_POOL.length)];
+    const key = `${cardName}|${RZL_THEME}`;
+    playerData.collection[key] = (playerData.collection[key] || 0) + 1;
+
+    saveData();
+    if (typeof updateHubUI === 'function') updateHubUI();
+    
+    // เริ่ม Animation
+    _showRezeroGachaAnimation(cardName, _RZL_CARDS[cardName]);
+};
+
+function _showRezeroGachaAnimation(cardName, cardData) {
+    const quote = _RZL_QUOTES[cardName] || "ใครกันนะ...?";
+    
+    const ov = document.createElement('div');
+    ov.id = '_rzl-gacha-anim';
+    ov.style.cssText = 'position:fixed;inset:0;background:#000;z-index:9990;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:background 1.5s ease;';
+    
+    // กล่องคำพูด
+    const quoteBox = document.createElement('div');
+    quoteBox.style.cssText = 'color:#e5e7eb;font-size:1.4rem;font-weight:bold;font-style:italic;text-align:center;max-width:80%;opacity:1;transition:opacity 0.5s ease;letter-spacing:1px;line-height:1.6;';
+    
+    // เอฟเฟกต์พิมพ์ดีด
+    let i = 0;
+    quoteBox.innerHTML = '';
+    ov.appendChild(quoteBox);
+    document.body.appendChild(ov);
+
+    function typeWriter() {
+        if (i < quote.length) {
+            quoteBox.innerHTML += quote.charAt(i);
+            i++;
+            setTimeout(typeWriter, 40); // ความเร็วการพิมพ์
+        } else {
+            // พิมพ์จบ รอ 1.5 วิ แล้ว Flash ขาวกระพริบตาเพื่อแสดงการ์ด
+            setTimeout(() => {
+                quoteBox.style.opacity = '0';
+                ov.style.background = '#fff'; // Flash White
+                setTimeout(() => {
+                    ov.remove();
+                    _showRezeroCardReveal(cardName, cardData);
+                }, 300);
+            }, 1800);
+        }
+    }
+    
+    // เริ่มพิมพ์
+    setTimeout(typeWriter, 500);
+}
+
+function _showRezeroCardReveal(cardName, cardData) {
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:9900;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.3s ease;';
+    ov.innerHTML = `
+    <div style="background:linear-gradient(135deg,#1e1b4b,#2e1065,#1e1b4b);
+         border:3px solid #a855f7;border-radius:28px;padding:32px 22px;
+         max-width:360px;width:92%;text-align:center;
+         box-shadow:0 0 80px rgba(168,85,247,0.55);transform:scale(0.8);animation:popIn 0.4s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+      <div style="font-size:2.8rem;margin-bottom:4px">📖</div>
+      <div style="font-size:1.2rem;font-weight:900;color:#d8b4fe;margin-bottom:18px">Witch Cult & Camps</div>
+      
+      <div style="width:160px;margin:0 auto 18px;border-radius:16px;overflow:hidden;
+           border:3px solid #a855f7;box-shadow:0 0 30px rgba(168,85,247,0.6)">
+        <img src="${cardData.art}" style="width:100%;height:200px;object-fit:cover">
+        <div style="background:rgba(0,0,0,0.88);padding:8px 6px">
+          <div style="font-size:0.62rem;font-weight:900;color:${cardData.isChampion ? '#fbbf24' : '#d8b4fe'};margin-bottom:2px">${cardData.isChampion ? '♛ Champion' : 'Limited Edition'}</div>
+          <div style="font-size:0.95rem;font-weight:900;color:white">${cardName}</div>
+          <div style="font-size:0.55rem;color:#9ca3af">Cost ${cardData.cost} · ATK ${cardData.atk} / HP ${cardData.hp}</div>
+        </div>
+      </div>
+      
+      <div style="background:rgba(168,85,247,0.12);border:1px solid #7c3aed;
+           border-radius:10px;padding:8px 12px;margin-bottom:18px;font-size:0.66rem;color:#c4b5fd;text-align:left;line-height:1.4;">
+        ${cardData.text}
+      </div>
+      
+      <button onclick="this.closest('div[style*=fixed]').remove();if(typeof renderPacksPanel==='function') renderPacksPanel();"
+        style="background:linear-gradient(135deg,#7c3aed,#9333ea);color:white;border:none;
+               padding:13px 38px;border-radius:16px;font-weight:900;font-size:1.05rem;cursor:pointer;
+               box-shadow:0 0 22px rgba(168,85,247,0.5)">สุดยอด!</button>
+    </div>
+    <style>@keyframes popIn { to { transform: scale(1); } }</style>`;
+    
+    document.body.appendChild(ov);
+    
+    // Play sound if available
+    const snd = new Audio('https://files.catbox.moe/mu7wrw.wav');
+    snd.volume = 0.6;
+    snd.play().catch(()=>{});
+
+    setTimeout(() => {
+        if (typeof checkCollectionMilestones === 'function') checkCollectionMilestones();
+        if (typeof checkTitleUnlocks === 'function') checkTitleUnlocks();
+    }, 1000);
+}
+
+// ─── HELPER: สร้าง SPELL / ITEM ─────────────────────────────
+function _mkRzlSpell(name) {
+    const tpl = _RZL_SPELLS[name];
+    if (!tpl) return null;
+    return {
+        id: 'card_' + (cardIdCounter++), name: tpl.name, originalName: tpl.name,
+        type: tpl.type, cost: tpl.cost, text: tpl.text, color: tpl.color, art: tpl.art || '',
+        requiresTarget: tpl.requiresTarget, targetEnemy: tpl.targetEnemy,
+        _theme: RZL_THEME, isRzlSpell: true, status: [], items:[]
+    };
+}
+
+function _mkRzlToken(name, atk, hp) {
+    return {
+        id: 'card_' + (cardIdCounter++), name: name, originalName: name,
+        type: 'Character', cost: 0, atk: atk, hp: hp, maxHp: hp,
+        text: 'Taunt | ตาย: +1/+1 ให้ Petelgeuse', color: 'bg-stone-950',
+        maxAttacks: 1, attacksLeft: 1, status: [], items: [], tempBuffs:[]
+    };
+}
+
+// ─── GAME MECHANICS HOOKS ───────────────────────────────────
+function _hookRezeroLtdMechanics() {
+
+    // 1. triggerOnSummon
+    if (typeof window.triggerOnSummon === 'function') {
+        const _origSummon = window.triggerOnSummon;
+        window.triggerOnSummon = function(card, pk) {
+            _origSummon(card, pk);
+            const eff = card.originalName || card.name;
+            const p = state.players[pk];
+            const oppKey = pk === 'player' ? 'ai' : 'player';
+
+            if (eff === 'Beatrice' && !card.silenced) {
+                p.hand.push(_mkRzlSpell('Contract'));
+                p.hand.push(_mkRzlSpell('Contract'));
+                if (typeof log === 'function') log(`🦋 [Beatrice] ฉันจะทำสัญญาปกป้องเธอเอง คาชิระ! ได้รับ Contract x2`, 'text-pink-300 font-bold');
+            }
+            if (eff === 'Garfiel Tinsel' && !card.silenced) {
+                p.hand.push(_mkRzlSpell('Beastification'));
+                if (typeof log === 'function') log(`🐅 [Garfiel] เตรียมขย้ำ! ได้รับ Beastification`, 'text-amber-400 font-bold');
+            }
+            if (eff === 'Pandora' && !card.silenced) {
+                const enemies = state.players[oppKey].field.filter(c => typeof getCharStats==='function' && getCharStats(c).hp > 0);
+                if (enemies.length > 0) {
+                    const target = enemies[Math.floor(Math.random() * enemies.length)];
+                    if (!target.status.includes('Paralyze')) target.status.push('Paralyze');
+                    target.paralyzeTurns = Math.max(target.paralyzeTurns || 0, 4);
+                    if (typeof log === 'function') log(`🗝️ [Pandora] ความจริงถูกบิดเบือน... ${target.name} ติด Paralyze 2 เทิร์น!`, 'text-stone-400 font-bold');
+                }
+            }
+            if (eff === 'Regulus Corneas' && !card.silenced) {
+                const allies = p.field.filter(c => c.id !== card.id && typeof getCharStats==='function' && getCharStats(c).hp > 0);
+                if (allies.length > 0) {
+                    const target = allies[Math.floor(Math.random() * allies.length)];
+                    target._regulusMarked = true; // ซ่อนไว้ไม่ให้แสดงใน UI ปกติ
+                    if (typeof log === 'function') log(`⌚ [Regulus] สิงสู่หัวใจ... ฝากชีวิตไว้กับเพื่อน (ศัตรูมองไม่เห็น)`, 'text-zinc-300 font-bold');
+                }
+            }
+            if (eff === 'Petelgeuse Romanée-Conti' && !card.silenced) {
+                p.hand.push(_mkRzlSpell('The Unseen Hand'));
+                if (typeof log === 'function') log(`🖐️ [Petelgeuse] นิ้วมือแห่งความเกียจคร้าน! ได้รับ The Unseen Hand`, 'text-lime-400 font-bold');
+            }
+            if (eff === 'Otto Suwen' && !card.silenced) {
+                const animalIdx = p.deck.findIndex(c => c.theme === 'animal_kingdom' && c.type === 'Character');
+                if (animalIdx !== -1 && p.field.length < (typeof getMaxFieldSlots === 'function' ? getMaxFieldSlots(pk) : 6)) {
+                    const summoned = p.deck.splice(animalIdx, 1)[0];
+                    summoned.attacksLeft = summoned.maxAttacks || 1;
+                    p.field.push(summoned);
+                    if (typeof log === 'function') log(`🗣️ [Otto] คุยกับสัตว์รู้เรื่อง! อัญเชิญ ${summoned.name} จากสำรับ!`, 'text-emerald-400 font-bold');
+                    if (typeof triggerOnSummon === 'function') triggerOnSummon(summoned, pk);
+                }
+            }
+            if (eff === 'Cecilus Segmunt' && !card.silenced) {
+                p.hand.push(_mkRzlSpell('Murasame'));
+                p.hand.push(_mkRzlSpell('Masayume'));
+                if (typeof log === 'function') log(`⚡ [Cecilus] สายฟ้าสีครามชักดาบ! ได้รับ Murasame และ Masayume`, 'text-blue-400 font-bold');
+            }
+            if (eff === 'Satella' && !card.silenced) {
+                state.players[oppKey].field.forEach(c => {
+                    if (!c.tossakanImmune) {
+                        if (!c.status.includes('Paralyze')) c.status.push('Paralyze');
+                        c.paralyzeTurns = Math.max(c.paralyzeTurns || 0, 2); // 1 Turn
+                    }
+                });
+                if (typeof log === 'function') log(`🌑 [Satella] เงามืดปกคลุม... ศัตรูทั้งหมดถูก Paralyze 1 เทิร์น!`, 'text-purple-400 font-bold');
+            }
+        };
+    }
+
+    // 2. resolveEndPhase
+    if (typeof window.resolveEndPhase === 'function') {
+        const _origEnd = window.resolveEndPhase;
+        window.resolveEndPhase = function(pk) {
+            _origEnd(pk);
+            const p = state.players[pk];
+
+            // Contract buff removal
+            p.field.forEach(c => {
+                if (c.contractBuffTurn === state.totalTurns) {
+                    c.atk = Math.max(0, c.atk - 3);
+                    c.contractBuffTurn = 0;
+                }
+                
+                const eff = c.originalName || c.name;
+                
+                // Echidna: Draw 2 if >=2 chars
+                if (eff === 'Echidna' && !c.silenced && getCharStats(c).hp > 0) {
+                    const aliveCount = p.field.filter(x => getCharStats(x).hp > 0).length;
+                    if (aliveCount >= 2) {
+                        if (typeof window.drawCard === 'function') window.drawCard(pk, 2);
+                        if (typeof log === 'function') log(`☕ [Echidna] เวลาน้ำชา... มีเพื่อนคุยเลยจั่วการ์ด 2 ใบ!`, 'text-slate-300 font-bold');
+                    }
+                }
+                
+                // Regulus End Turn: Mark
+                if (eff === 'Regulus Corneas' && !c.silenced && getCharStats(c).hp > 0) {
+                    const allies = p.field.filter(x => x.id !== c.id && getCharStats(x).hp > 0);
+                    if (allies.length > 0) {
+                        const target = allies[Math.floor(Math.random() * allies.length)];
+                        target._regulusMarked = true;
+                        if (typeof log === 'function') log(`⌚ [Regulus] ฝากหัวใจไว้อีกดวง...`, 'text-zinc-400');
+                    }
+                }
+
+                // Satella Revive Countdown
+                if (c.satellaReviveTimer > 0) {
+                    c.satellaReviveTimer--;
+                    if (c.satellaReviveTimer === 0) {
+                        c.status = c.status.filter(s => s !== 'Levitate'); // เอา Levitate ออก
+                        c.hp = c.maxHp;
+                        if (typeof log === 'function') log(`🌑 [Satella] หญิงสาวผู้เป็นที่รักของเงา... คืนชีพและเริ่มร่ายความมืดอีกครั้ง!`, 'text-purple-400 font-bold');
+                        if (typeof triggerOnSummon === 'function') triggerOnSummon(c, pk);
+                    }
+                }
+            });
+        };
+    }
+
+    // 3. getCharStats (Sirius, Regulus, Cecilus, Garfiel)
+    if (typeof window.getCharStats === 'function') {
+        const _origStats = window.getCharStats;
+        window.getCharStats = function(char) {
+            let stats = _origStats(char);
+            if (char.silenced) return stats;
+            const eff = char.originalName || char.name;
+            const ownerKey = state.players.player.field.some(c => c.id === char.id) ? 'player' : 'ai';
+            const p = state.players[ownerKey];
+
+            if (eff === 'Sirius') {
+                stats.damageMultiplier = (stats.damageMultiplier || 1) * 0.7; // 30% reduction
+            }
+            if (eff === 'Regulus Corneas') {
+                // เช็คว่ามีใครบนกระดาน (ทั้ง 2 ฝั่ง) ที่มี Mark และมีชีวิต
+                let hasMarkedAlive = false;
+                ['player', 'ai'].forEach(k => {
+                    state.players[k].field.forEach(x => {
+                        if (x._regulusMarked && x.hp > 0) hasMarkedAlive = true;
+                    });
+                });
+                if (hasMarkedAlive) {
+                    stats.damageMultiplier = 0; // อมตะ
+                }
+            }
+            if (char.items) {
+                if (char.items.some(i => i.name === 'Murasame')) {
+                    stats.atk += 5;
+                    stats.maxAttacks = Math.max(stats.maxAttacks || 1, 4);
+                }
+            }
+            if (char.hasBeastificationEvade) {
+                stats.hasEvade = true; // 50%
+            }
+
+            return stats;
+        };
+    }
+
+    // 4. getActualCost (Cecilus Swords)
+    if (typeof window.getActualCost === 'function') {
+        const _origCost = window.getActualCost;
+        window.getActualCost = function(card, pk) {
+            let cost = _origCost(card, pk);
+            if (card.name === 'Murasame' || card.name === 'Masayume') {
+                const lostHp = 20 - state.players[pk].hp;
+                cost = Math.max(0, cost - lostHp);
+            }
+            return cost;
+        };
+    }
+
+    // 5. drawCard (Echidna)
+    if (typeof window.drawCard === 'function') {
+        const _origDraw = window.drawCard;
+        window.drawCard = function(pk, count = 2) {
+            _origDraw.apply(this, arguments);
+            const p = state.players[pk];
+            p.field.forEach(c => {
+                const eff = c.originalName || c.name;
+                if (eff === 'Echidna' && !c.silenced && c.hp > 0) {
+                    const buff = 2 * count; // 2 ต่อ 1 ใบที่จั่ว
+                    c.atk += buff; c.hp += buff; c.maxHp += buff;
+                    if (typeof log === 'function') log(`☕ [Echidna] ความรู้เพิ่มพูน... +${buff} ATK/HP!`, 'text-slate-300 font-bold');
+                }
+            });
+        };
+    }
+
+    // 6. resolveTargetedPlay (Contract, Murasame, Masayume)
+    if (typeof window.resolveTargetedPlay === 'function') {
+        const _origTarget = window.resolveTargetedPlay;
+        window.resolveTargetedPlay = function(pk, srcId, tgtId) {
+            const p = state.players[pk];
+            const card = p.hand.find(c => c.id === srcId);
+            
+            if (card && (card.name === 'Murasame' || card.name === 'Masayume')) {
+                const tgt = p.field.find(c => c.id === tgtId);
+                if (tgt && (tgt.originalName || tgt.name) !== 'Cecilus Segmunt') {
+                    if (pk === 'player' && typeof alert === 'function') alert('ดาบนี้ใส่ได้แค่ Cecilus Segmunt เท่านั้น!');
+                    if (typeof cancelTargeting === 'function') cancelTargeting();
+                    return;
+                }
+            }
+
+            if (card && card.name === 'Contract') {
+                const tgt = p.field.find(c => c.id === tgtId);
+                if (tgt) {
+                    tgt.atk += 3;
+                    tgt.contractBuffTurn = state.totalTurns;
+                    tgt.contractCaster = pk;
+                    if (typeof log === 'function') log(`🦋 [Contract] สัญญาผูกมัด! ${tgt.name} +3 ATK ในเทิร์นนี้!`, 'text-pink-400 font-bold');
+                    
+                    p.cost -= (typeof getActualCost === 'function' ? getActualCost(card, pk) : card.cost);
+                    p.hand.splice(p.hand.indexOf(card), 1);
+                    p.graveyard.push(card);
+                    if (typeof cancelTargeting === 'function') cancelTargeting();
+                    if (typeof updateUI === 'function') updateUI();
+                    return;
+                }
+            }
+
+            _origTarget.apply(this, arguments);
+        };
+    }
+
+    // 7. executeNonTargetAction (Beastification, The Unseen Hand)
+    if (typeof window.executeNonTargetAction === 'function') {
+        const _origNonTarget = window.executeNonTargetAction;
+        window.executeNonTargetAction = function(card, pk) {
+            const p = state.players[pk];
+            if (card.name === 'Beastification') {
+                p.hp = Math.max(0, p.hp - 1);
+                if (typeof checkWinCondition === 'function') checkWinCondition();
+                const garf = p.field.find(c => (c.originalName || c.name) === 'Garfiel Tinsel' && c.hp > 0);
+                if (garf) {
+                    garf.atk += 5; garf.hp += 5; garf.maxHp += 5;
+                    garf.hasBeastificationEvade = true;
+                    if (typeof log === 'function') log(`🐅[Beastification] คำราม! Garfiel กลายร่าง +5/+5 และหลบหลีก 50%!`, 'text-amber-400 font-bold');
+                }
+                p.graveyard.push(card);
+                return;
+            }
+            if (card.name === 'The Unseen Hand') {
+                for(let i=0; i<2; i++) {
+                    if (p.field.length < (typeof getMaxFieldSlots==='function'?getMaxFieldSlots(pk):6)) {
+                        p.field.push(_mkRzlToken('Shadow Hand', 1, 1));
+                    }
+                }
+                if (typeof log === 'function') log(`🖐️ [The Unseen Hand] อัญเชิญมือมืด x2!`, 'text-stone-400 font-bold');
+                p.graveyard.push(card);
+                return;
+            }
+
+            _origNonTarget.apply(this, arguments);
+        };
+    }
+
+    // 8. initiateAttack (Sirius, Pandora, Cecilus Masayume)
+    if (typeof window.initiateAttack === 'function') {
+        const _origAtk = window.initiateAttack;
+        window.initiateAttack = function(atkId, tgtId, isBase) {
+            if (typeof state === 'undefined' || isBase) {
+                // Pandora Base HP logic handled around _origAtk
+                let atkCard = null;
+                const pk = state.currentTurn;
+                if (pk) atkCard = state.players[pk].field.find(c => c.id === atkId);
+                
+                if (atkCard && (atkCard.originalName || atkCard.name) === 'Pandora' && !atkCard.silenced) {
+                    state.players[pk].hp -= 1;
+                    if (typeof log === 'function') log(`🗝️ [Pandora] บิดเบือนความเป็นจริง... Base เรา -1 HP เพื่อโจมตี!`, 'text-stone-400');
+                    if (typeof checkWinCondition === 'function') checkWinCondition();
+                }
+
+                _origAtk.apply(this, arguments);
+                
+                // If Pandora attacked base (and assuming she didn't die), she doesn't technically "kill" a unit, 
+                // but if we want to reward killing base, we can. The prompt says "if kill a unit heal 2 base hp", 
+                // so we only do it for non-base targets below.
+                return;
+            }
+
+            const pk = state.currentTurn;
+            const oppKey = pk === 'player' ? 'ai' : 'player';
+            const attacker = state.players[pk].field.find(c => c.id === atkId);
+            let target = state.players[oppKey].field.find(c => c.id === tgtId);
+
+            if (attacker && target) {
+                const aN = attacker.originalName || attacker.name;
+                const tN = target.originalName || target.name;
+
+                // Sirius: Extra 2 dmg if paralyzed
+                if (aN === 'Sirius' && !attacker.silenced && target.status.includes('Paralyze')) {
+                    attacker.atk += 2;
+                    attacker._siriusBoost = true;
+                    if (typeof log === 'function') log(`⛓️ [Sirius] ยิ่งดิ้นยิ่งเจ็บ! ทำดาเมจเพิ่ม +2 ใส่เป้าหมายที่ขยับไม่ได้!`, 'text-red-400 font-bold');
+                }
+
+                // Pandora: -1 Base HP
+                if (aN === 'Pandora' && !attacker.silenced) {
+                    state.players[pk].hp -= 1;
+                    if (typeof checkWinCondition === 'function') checkWinCondition();
+                }
+
+                const prevTgtHp = target.hp;
+
+                _origAtk.apply(this, arguments);
+
+                // Revert Sirius boost
+                if (attacker._siriusBoost) {
+                    attacker.atk -= 2;
+                    attacker._siriusBoost = false;
+                }
+
+                // Masayume Check
+                if (attacker.items && attacker.items.some(i => i.name === 'Masayume')) {
+                    // Check if target survived
+                    const tgtAfter = state.players[oppKey].field.find(c => c.id === tgtId);
+                    if (tgtAfter && tgtAfter.hp > 0 && prevTgtHp > tgtAfter.hp) { // means attack hit but didn't kill
+                        tgtAfter.hp = -99;
+                        if (typeof log === 'function') log(`🗡️[Masayume] ดาบมารประหาร! ฆ่า ${tgtAfter.name} ทันที! (และดาบสลายไป)`, 'text-sky-300 font-bold');
+                        if (typeof checkDeath === 'function') checkDeath(oppKey);
+                        
+                        // Destroy Masayume
+                        const idx = attacker.items.findIndex(i => i.name === 'Masayume');
+                        if (idx !== -1) {
+                            state.players[pk].graveyard.push(attacker.items.splice(idx, 1)[0]);
+                        }
+                    }
+                }
+
+                // Pandora Kill check
+                if (aN === 'Pandora' && !attacker.silenced) {
+                    const tgtAfter = state.players[oppKey].field.find(c => c.id === tgtId);
+                    if (!tgtAfter || tgtAfter.hp <= 0) { // Killed
+                        state.players[pk].hp = Math.min(20, state.players[pk].hp + 2);
+                        if (typeof log === 'function') log(`🗝️ [Pandora] เปลี่ยนความตายเป็นพลัง! Base เรา +2 HP!`, 'text-stone-300 font-bold');
+                    }
+                }
+
+                // Sirius apply Paralyze post-attack
+                if (aN === 'Sirius' && !attacker.silenced) {
+                    const tgtAfter = state.players[oppKey].field.find(c => c.id === tgtId);
+                    if (tgtAfter && tgtAfter.hp > 0 && !tgtAfter.tossakanImmune) {
+                        if (!tgtAfter.status.includes('Paralyze')) tgtAfter.status.push('Paralyze');
+                        tgtAfter.paralyzeTurns = Math.max(tgtAfter.paralyzeTurns || 0, 4); // 2T
+                        if (typeof log === 'function') log(`⛓️ [Sirius] มัดไว้ด้วยความรัก! ${tgtAfter.name} ติด Paralyze 2 เทิร์น!`, 'text-red-400');
+                    }
+                }
+            } else {
+                _origAtk.apply(this, arguments);
+            }
+        };
+    }
+
+    // 9. checkDeath (Beatrice, Garfiel, Pandora, Petelgeuse, Shadow Hand, Contract Heal)
+    if (typeof window.checkDeath === 'function') {
+        const _origDeath = window.checkDeath;
+        window.checkDeath = function(pk) {
+            const p = state.players[pk];
+            const oppKey = pk === 'player' ? 'ai' : 'player';
+
+            p.field.forEach(c => {
+                if (typeof getCharStats === 'function' && getCharStats(c).hp <= 0 && !c.isDyingProcessing) {
+                    const eff = c.originalName || c.name;
+
+                    // Contract Heal
+                    if (c.contractBuffTurn === state.totalTurns && c.contractCaster) {
+                        state.players[c.contractCaster].hp = Math.min(20, state.players[c.contractCaster].hp + 1);
+                        if (typeof log === 'function') log(`🦋 [Contract] สังเวยวิญญาณ... ผู้ร่ายเวทได้รับการฮีล +1 HP!`, 'text-pink-400 font-bold');
+                    }
+
+                    if (eff === 'Beatrice') {
+                        p.hand.push(_mkRzlSpell('Contract'));
+                        p.hand.push(_mkRzlSpell('Contract'));
+                        if (typeof log === 'function') log(`🦋 [Beatrice] ลาก่อน... ทิ้ง Contract ไว้ให้ 2 ใบ`, 'text-pink-400 font-bold');
+                    }
+
+                    if (eff === 'Garfiel Tinsel') {
+                        state.players[oppKey].hp -= 1;
+                        if (typeof log === 'function') log(`🐅 [Garfiel] เฮือกสุดท้าย! Base ศัตรู -1 HP`, 'text-amber-400 font-bold');
+                        if (typeof checkWinCondition === 'function') checkWinCondition();
+                    }
+
+                    if (eff === 'Shadow Hand') {
+                        const petel = p.field.find(x => (x.originalName || x.name) === 'Petelgeuse Romanée-Conti' && getCharStats(x).hp > 0);
+                        if (petel) {
+                            petel.atk += 1; petel.maxHp += 1; petel.hp += 1;
+                            if (typeof log === 'function') log(`🖐️ [Shadow Hand] พลังกลับสู่ร่างต้น! Petelgeuse +1/+1`, 'text-stone-400');
+                        }
+                    }
+
+                    if (eff === 'Pandora' && !c.pandoraRevived) {
+                        c.pandoraRevived = true;
+                        c.hp = c.maxHp;
+                        c.isDyingProcessing = false;
+                        if (typeof log === 'function') log(`🗝️ [Pandora] ความตายไม่ใช่จุดจบ... เขียนความจริงใหม่และคืนชีพ!`, 'text-stone-300 font-bold');
+                        if (typeof window.triggerOnSummon === 'function') window.triggerOnSummon(c, pk);
+                    }
+
+                    if (eff === 'Petelgeuse Romanée-Conti' && !c.petelgeuseRevived) {
+                        const myStats = getCharStats(c); // pre-death stats
+                        const enemies = state.players[oppKey].field.filter(x => getCharStats(x).hp > 0);
+                        const weaker = enemies.filter(x => {
+                            const st = getCharStats(x);
+                            return (st.hp + st.atk) < (myStats.hp + myStats.atk);
+                        });
+                        
+                        if (weaker.length > 0) {
+                            const target = weaker[Math.floor(Math.random() * weaker.length)];
+                            const tStats = getCharStats(target);
+                            target.hp = -99; // Kill enemy
+                            if (typeof log === 'function') log(`🧠 [Petelgeuse] นิ้วมือมองไม่เห็นเจาะทะลุร่าง! ยึดร่าง ${target.name} สำเร็จ!`, 'text-lime-400 font-bold');
+                            
+                            c.petelgeuseRevived = true;
+                            c.hp = tStats.maxHp;
+                            c.maxHp = tStats.maxHp;
+                            c.atk = tStats.atk;
+                            c.isDyingProcessing = false;
+                            
+                            if (typeof window.triggerOnSummon === 'function') window.triggerOnSummon(c, pk);
+                            if (typeof window.checkDeath === 'function') window.checkDeath(oppKey);
+                        } else {
+                            if (typeof log === 'function') log(`🧠 [Petelgeuse] ไม่มีภาชนะที่อ่อนแอกว่า... สลายไปอย่างเกียจคร้าน`, 'text-lime-600');
+                        }
+                    }
+
+                    if (eff === 'Satella' && !c.satellaUsed) {
+                        c.satellaUsed = true;
+                        c.hp = c.maxHp;
+                        c.isDyingProcessing = false;
+                        if (!c.status.includes('Levitate')) c.status.push('Levitate');
+                        c.immortalTurns = 2; // 1 Turn round trip
+                        c.satellaReviveTimer = 2; // Trigger end phase next turn
+                        if (typeof log === 'function') log(`🌑 [Satella] กลืนกินความตาย... เธอชักนำเงามาคลุมร่างและลอยตัวขึ้นสู่ความว่างเปล่า`, 'text-purple-400 font-bold');
+                    }
+                }
+            });
+            _origDeath.apply(this, arguments);
+        };
+    }
+}
