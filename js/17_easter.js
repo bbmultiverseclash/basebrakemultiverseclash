@@ -419,7 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 shopOnly: true, // [ADDED] Easter Shop exclusive
             },
             'Great Rabbit': {
-                name:'Great Rabbit', type:'Character', cost:8, atk:3, hp:6, maxHp:6,
+                name:'Great Rabbit', type:'Character', cost:8, atk:6, hp:6, maxHp:6,
                 text:'จบเทิร์น: เรียก 2 Great Rabbit | ตาย: โอกาส 50% เรียก Great Rabbit ใหม่ 2 ตัว (ขยายพันธุ์ต่อเนื่อง)',
                 color:'bg-pink-500', maxAttacks:1,
                 art:'https://files.catbox.moe/41g4f6.jpg',
