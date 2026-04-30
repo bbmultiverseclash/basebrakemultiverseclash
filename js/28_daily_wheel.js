@@ -9,8 +9,8 @@ const WHEEL_NEW_CARDS = {
         color: 'bg-yellow-600', maxAttacks: 1, shopOnly: true, // ไม่ให้อยู่ในแพ็คปกติ
         art: 'https://tse4.mm.bing.net/th/id/OIP.7WMUjbumqX2ihQ2rj-6u-QHaHa?rs=1&pid=ImgDetMain&o=7&rm=3', _theme: 'humanity'
     },
-    'Pandora\'s Actor': {
-        name: 'Pandora\'s Actor', type: 'Character', cost: 8, atk: 8, hp: 8, maxHp: 8,
+    "Pandora's Actor": {
+        name: "Pandora's Actor", type: 'Character', cost: 8, atk: 8, hp: 8, maxHp: 8,
         text: 'On Summon: สุ่มลอกเลียนแบบ Character 1 ตัวจากใน Deck (ศัตรูจะเห็นภาพและสเตตัสปลอม แต่พลังจริงคือ 8/8) และได้รับ Ability ทั้งหมดรวมถึงร่าย On Summon ของตัวนั้นทันที',
         color: 'bg-yellow-800', maxAttacks: 1, shopOnly: true, // ไม่ให้อยู่ในแพ็คปกติ
         art: 'https://file.garden/aeeLCXSsJxTPrRbp/31da9540e52dede1621af216636f7d26.jpg', _theme: 'isekai_adventure'
@@ -45,10 +45,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (typeof COSMETICS_CATALOG !== 'undefined') {
         if (!COSMETICS_CATALOG.avatars.find(a => a.id === 'av_nobita')) {
-            COSMETICS_CATALOG.avatars.push({ id: 'av_nobita', label: 'Nobita's Bright Smile', art: 'https://copilot.microsoft.com/th/id/BCO.c5616167-ad5a-4d1f-93b5-a7839328131e.png' });
+            COSMETICS_CATALOG.avatars.push({ id: 'av_nobita', label: "Nobita's Bright Smile", art: 'https://copilot.microsoft.com/th/id/BCO.c5616167-ad5a-4d1f-93b5-a7839328131e.png' });
         }
         if (!COSMETICS_CATALOG.banners.find(b => b.id === 'bn_nobita')) {
-            COSMETICS_CATALOG.banners.push({ id: 'bn_nobita', label: 'Nobita's Dream Odyssey', art: 'https://copilot.microsoft.com/th/id/BCO.73f22404-bc70-4e59-b121-13f1a1313ccc.png' });
+            COSMETICS_CATALOG.banners.push({ id: 'bn_nobita', label: "Nobita's Dream Odyssey", art: 'https://copilot.microsoft.com/th/id/BCO.73f22404-bc70-4e59-b121-13f1a1313ccc.png' });
         }
     }
 
@@ -70,8 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (msg) { msg.style.color='#f87171'; msg.textContent='❌ โค้ดนี้ใช้ไปแล้ว'; } return;
                 }
                 const randomExtra = Math.floor(Math.random() * 25) + 1; // 1-25
-                playerData.rezeroTokens = (playerData.rezeroTokens || 0) + 25; // ได้ Premium Token
-                playerData.rzNormalTokens = (playerData.rzNormalTokens || 0) + randomExtra; // ได้ Normal Token
+                const totalNormal = 25 + randomExtra;
+                playerData.rzNormalTokens = (playerData.rzNormalTokens || 0) + totalNormal; // ได้ Normal Token 25 + โบนัสสุ่ม
                 
                 if (typeof markCodeUsed === 'function') markCodeUsed(raw);
                 if (typeof saveData === 'function') saveData();
@@ -140,12 +140,14 @@ const WHEEL_REWARDS =[
     { id: 'gem_5',        prob: 5,  type: 'gems',  val: 5,     label: '5 Gems', icon: '💎', color: '#c084fc' },
     { id: 'coin_4000',    prob: 4,  type: 'coins', val: 4000,  label: '4,000 Coins', icon: '🪙', color: '#f59e0b' },
     { id: 'char_nobita',  prob: 3,  type: 'card',  val: 'Nobita', theme: 'humanity', label: 'Nobita (Card)', icon: '👓', color: '#fcd34d' },
-    { id: 'ava_nobita',   prob: 3,  type: 'avatar',val: 'av_nobita', label: 'Nobita's Bright Smile', icon: '👤', color: '#a78bfa' },
-    { id: 'ban_nobita',   prob: 2,  type: 'banner',val: 'bn_nobita', label: 'Nobita's Dream Odyssey', icon: '🖼️', color: '#a78bfa' },
+    // แก้ไข: ใช้เครื่องหมาย Double Quote ครอบข้อความที่มี ' อยู่ข้างใน
+    { id: 'ava_nobita',   prob: 3,  type: 'avatar',val: 'av_nobita', label: "Nobita's Bright Smile", icon: '👤', color: '#a78bfa' },
+    { id: 'ban_nobita',   prob: 2,  type: 'banner',val: 'bn_nobita', label: "Nobita's Dream Odyssey", icon: '🖼️', color: '#a78bfa' },
     { id: 'gem_10',       prob: 2,  type: 'gems',  val: 10,    label: '10 Gems', icon: '💎', color: '#d8b4fe' },
     { id: 'art_nobita',   prob: 1,  type: 'artstyle',val: 'nobita_cyber', label: 'Nobita Cyber Realm', icon: '🎨', color: '#f472b6' },
     { id: 'art_farmer',   prob: 1,  type: 'artstyle',val: 'farmer_steampunk', label: 'Farmer Steampunk', icon: '🎨', color: '#f472b6' },
-    { id: 'char_pandora', prob: 1,  type: 'card',  val: "Pandora's Actor", theme: 'isekai_adventure', label: 'Pandora\'s Actor', icon: '🎭', color: '#fbbf24' },
+    // แก้ไข: หลีกเลี่ยงบัค Single quote เช่นกัน
+    { id: 'char_pandora', prob: 1,  type: 'card',  val: "Pandora's Actor", theme: 'isekai_adventure', label: "Pandora's Actor", icon: '🎭', color: '#fbbf24' },
     { id: 'coin_10000',   prob: 1,  type: 'coins', val: 10000, label: '10,000 Coins', icon: '💰', color: '#f59e0b' },
     { id: 'gem_30',       prob: 1,  type: 'gems',  val: 30,    label: '30 Gems', icon: '💎', color: '#c084fc' },
     { id: 'spin_7',       prob: 1,  type: 'spins', val: 7,     label: '7 Free Spins!', icon: '🎰', color: '#34d399' },
@@ -462,4 +464,4 @@ function _hookWheelMechanics() {
             }
         };
     }
-}
+                }
