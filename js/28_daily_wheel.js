@@ -155,6 +155,7 @@ const WHEEL_REWARDS =[
 ];
 
 let _wheelTimerInterval = null;
+let _isSpinning = false; // ตัวแปรเช็คว่าวงล้อกำลังหมุนอยู่หรือไม่
 
 function renderWheelPanel() {
     const pnl = document.getElementById('hub-panel-quests')?.parentElement?.querySelector('#hub-panel-wheel');
@@ -173,7 +174,7 @@ function renderWheelPanel() {
     const spinsToCosmetic = 30 - (spinCount % 30);
 
     const canFreeSpin = (now - lastSpin >= cooldown);
-    const canSpin = canFreeSpin || extraSpins > 0;
+    const canSpin = (canFreeSpin || extraSpins > 0) && !_isSpinning;
 
     let timeText = '';
     if (!canFreeSpin) {
@@ -185,48 +186,86 @@ function renderWheelPanel() {
         timeText = '✅ วงล้อฟรีพร้อมใช้งานแล้ว!';
     }
 
-    pnl.innerHTML = `
-    <div style="max-width:600px;margin:0 auto;padding:20px;text-align:center;">
-        <div style="font-size:3.5rem;margin-bottom:10px;">🎡</div>
-        <div style="font-size:1.8rem;font-weight:900;color:#fbbf24;text-shadow:0 0 15px rgba(251,191,36,0.5);">Daily Wheel</div>
-        <div style="font-size:0.85rem;color:#9ca3af;margin-bottom:20px;">หมุนวงล้อฟรีทุก 24 ชั่วโมง ลุ้นรับตัวละครลับ Nobita และสกินพิเศษ!</div>
+    // สร้างพื้นหลังวงล้อด้วย CSS Conic Gradient
+    const numSlices = WHEEL_REWARDS.length;
+    const sliceDeg = 360 / numSlices;
+    let gradientParts =[];
+    let iconsHtml = '';
 
-        <div style="background:#111827;border:2px solid #374151;border-radius:20px;padding:25px;box-shadow:0 0 40px rgba(0,0,0,0.5);margin-bottom:20px;">
-            <div style="font-size:1.2rem;font-weight:900;color:${canFreeSpin ? '#4ade80' : '#f87171'};margin-bottom:10px;">
+    WHEEL_REWARDS.forEach((r, i) => {
+        gradientParts.push(`${r.color} ${i * sliceDeg}deg ${(i + 1) * sliceDeg}deg`);
+        
+        // คำนวณตำแหน่ง Emoji ให้อยู่ตรงกลางของแต่ละช่อง
+        const rot = (i * sliceDeg) + (sliceDeg / 2);
+        iconsHtml += `
+            <div style="position:absolute; top:50%; left:50%; width:30px; height:30px; margin-top:-15px; margin-left:-15px;
+                        transform: rotate(${rot}deg) translateY(-110px) rotate(90deg);
+                        display:flex; align-items:center; justify-content:center;
+                        font-size:1.5rem; text-shadow: 0 0 5px rgba(0,0,0,0.8); z-index: 2;">
+                ${r.icon}
+            </div>
+        `;
+    });
+
+    const wheelBackground = `conic-gradient(${gradientParts.join(', ')})`;
+
+    pnl.innerHTML = `
+    <div style="max-width:600px;margin:0 auto;padding:20px;text-align:center;overflow-x:hidden;">
+        <div style="font-size:1.8rem;font-weight:900;color:#fbbf24;text-shadow:0 0 15px rgba(251,191,36,0.5);margin-bottom:5px;">🎡 Daily Wheel</div>
+        <div style="font-size:0.85rem;color:#9ca3af;margin-bottom:15px;">หมุนวงล้อฟรีทุก 24 ชั่วโมง ลุ้นรับตัวละครลับ Nobita และสกินพิเศษ!</div>
+
+        <div style="background:#111827;border:2px solid #374151;border-radius:24px;padding:25px 15px;box-shadow:0 0 40px rgba(0,0,0,0.5);margin-bottom:20px;position:relative;overflow:hidden;">
+            
+            <!-- WHEEL ANIMATION CONTAINER -->
+            <div style="position:relative; width:280px; height:280px; margin:0 auto 20px;">
+                <!-- Pointer (เข็มชี้) -->
+                <div style="position:absolute; top:-15px; left:50%; transform:translateX(-50%); z-index:10; font-size:2.5rem; filter:drop-shadow(0 4px 4px rgba(0,0,0,0.8));">
+                    🔽
+                </div>
+                
+                <!-- The Wheel -->
+                <div id="the-roulette-wheel" style="width:100%; height:100%; border-radius:50%; background:${wheelBackground}; border:6px solid #fbbf24; box-shadow:0 0 20px rgba(251,191,36,0.4), inset 0 0 20px rgba(0,0,0,0.5); position:relative; box-sizing:border-box;">
+                    ${iconsHtml}
+                    <!-- หมุดตรงกลาง -->
+                    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:40px; height:40px; background:#1f2937; border:4px solid #fbbf24; border-radius:50%; z-index:5; box-shadow:0 0 10px rgba(0,0,0,0.8);"></div>
+                </div>
+            </div>
+
+            <div style="font-size:1.1rem;font-weight:900;color:${canFreeSpin ? '#4ade80' : '#f87171'};margin-bottom:10px;">
                 ${timeText}
             </div>
-            ${extraSpins > 0 ? `<div style="font-size:1rem;color:#60a5fa;font-weight:bold;margin-bottom:15px;">🎟️ คุณมีสิทธิ์หมุนพิเศษ: ${extraSpins} ครั้ง</div>` : ''}
+            ${extraSpins > 0 ? `<div style="font-size:0.9rem;color:#60a5fa;font-weight:bold;margin-bottom:15px;">🎟️ คุณมีสิทธิ์หมุนพิเศษ: ${extraSpins} ครั้ง</div>` : ''}
 
             <button id="btn-spin-wheel" onclick="executeWheelSpin()" ${canSpin ? '' : 'disabled'}
                 style="background:${canSpin ? 'linear-gradient(135deg, #d97706, #b45309)' : '#374151'};
-                       color:${canSpin ? 'white' : '#6b7280'};border:none;padding:15px 40px;border-radius:15px;
+                       color:${canSpin ? 'white' : '#6b7280'};border:none;padding:12px 40px;border-radius:15px;
                        font-weight:900;font-size:1.2rem;cursor:${canSpin ? 'pointer' : 'not-allowed'};
-                       box-shadow:${canSpin ? '0 0 20px rgba(217,119,6,0.5)' : 'none'};transition:0.2s;">
-                ${canSpin ? '🎰 หมุนวงล้อเลย!' : '⏳ รอเวลา...'}
+                       box-shadow:${canSpin ? '0 0 20px rgba(217,119,6,0.5)' : 'none'};transition:0.2s;width:200px;">
+                ${_isSpinning ? '🎡 กำลังหมุน...' : canSpin ? '🎰 หมุนวงล้อ!' : '⏳ รอเวลา...'}
             </button>
         </div>
 
-        <div style="display:flex;gap:15px;justify-content:center;margin-bottom:20px;">
-            <div style="background:rgba(251,191,36,0.1);border:1px solid #fbbf24;padding:12px;border-radius:12px;flex:1;">
-                <div style="font-size:0.7rem;color:#fbbf24;">การันตี Nobita ในอีก</div>
-                <div style="font-size:1.5rem;font-weight:900;color:white;">${spinsToNobita} <span style="font-size:0.8rem;">หมุน</span></div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-bottom:20px;">
+            <div style="background:rgba(251,191,36,0.1);border:1px solid #fbbf24;padding:10px;border-radius:12px;flex:1;">
+                <div style="font-size:0.65rem;color:#fbbf24;">การันตี Nobita ในอีก</div>
+                <div style="font-size:1.3rem;font-weight:900;color:white;">${spinsToNobita} <span style="font-size:0.7rem;">หมุน</span></div>
             </div>
-            <div style="background:rgba(192,132,252,0.1);border:1px solid #c084fc;padding:12px;border-radius:12px;flex:1;">
-                <div style="font-size:0.7rem;color:#c084fc;">การันตี Cosmetic ในอีก</div>
-                <div style="font-size:1.5rem;font-weight:900;color:white;">${spinsToCosmetic} <span style="font-size:0.8rem;">หมุน</span></div>
+            <div style="background:rgba(192,132,252,0.1);border:1px solid #c084fc;padding:10px;border-radius:12px;flex:1;">
+                <div style="font-size:0.65rem;color:#c084fc;">การันตี Cosmetic ในอีก</div>
+                <div style="font-size:1.3rem;font-weight:900;color:white;">${spinsToCosmetic} <span style="font-size:0.7rem;">หมุน</span></div>
             </div>
         </div>
 
-        <div style="text-align:left;background:#1f2937;padding:15px;border-radius:12px;font-size:0.75rem;color:#9ca3af;line-height:1.6;">
+        <div style="text-align:left;background:#1f2937;padding:15px;border-radius:12px;font-size:0.7rem;color:#9ca3af;line-height:1.6;">
             <strong style="color:white;">ℹ️ กฎของวงล้อ:</strong><br>
             • ได้การ์ดซ้ำได้ปกติ แต่ถ้าได้ Cosmetic (Banner, Artstyle, รูปโปรไฟล์) ที่มีอยู่แล้ว จะได้รับ <b style="color:#93c5fd;">15 Gems ชดเชยแทน</b><br>
             • ทุกๆ 15 ครั้ง การันตีได้ <b style="color:#fcd34d;">Nobita</b><br>
-            • ทุกๆ 30 ครั้ง การันตีได้ Cosmetic แรร์ 1 อย่าง (Nobita Artstyle, Farmer Artstyle, Avatar หรือ Banner)<br>
+            • ทุกๆ 30 ครั้ง การันตีได้ Cosmetic แรร์ 1 อย่าง<br>
             • หมุน 1 ครั้ง = นับ 1 ครั้ง (หมุนฟรีหรือใช้ตั๋วพิเศษก็นับ)
         </div>
     </div>`;
 
-    if (!canFreeSpin && extraSpins <= 0) {
+    if (!canFreeSpin && extraSpins <= 0 && !_isSpinning) {
         _wheelTimerInterval = setInterval(() => {
             const r = cooldown - (Date.now() - playerData.wheelLastSpin);
             if (r <= 0) {
@@ -234,7 +273,7 @@ function renderWheelPanel() {
             } else {
                 const h = Math.floor(r / 3600000);
                 const m = Math.floor((r % 3600000) / 60000);
-                const timeEl = pnl.querySelector('div[style*="font-size:1.2rem"]');
+                const timeEl = pnl.querySelector('div[style*="font-size:1.1rem"]');
                 if (timeEl) timeEl.innerText = `รอบฟรีถัดไปใน: ${h} ชม. ${m} นาที`;
             }
         }, 60000); // อัปเดตทุกนาที
@@ -242,33 +281,43 @@ function renderWheelPanel() {
 }
 
 window.executeWheelSpin = function() {
+    if (_isSpinning) return; // ป้องกันการกดเบิ้ล
+
     const now = Date.now();
     const cooldown = 24 * 60 * 60 * 1000;
     
+    let usedFreeSpin = false;
     if (now - (playerData.wheelLastSpin || 0) >= cooldown) {
-        playerData.wheelLastSpin = now; // ใช้โควต้ารายวัน
+        usedFreeSpin = true;
     } else if ((playerData.wheelExtraSpins || 0) > 0) {
-        playerData.wheelExtraSpins--; // ใช้ตั๋ว
+        usedFreeSpin = false;
     } else {
         return; // หมุนไม่ได้
     }
 
+    // 1. ตัดสิทธิ์การหมุนและบันทึกลง Database ทันทีเพื่อกันคนกด Refresh หนี
+    if (usedFreeSpin) {
+        playerData.wheelLastSpin = now;
+    } else {
+        playerData.wheelExtraSpins--;
+    }
     playerData.wheelSpinCount = (playerData.wheelSpinCount || 0) + 1;
+    saveData();
+
+    _isSpinning = true;
+    renderWheelPanel(); // รีเฟรช UI ให้ปุ่มเทาลง
+
+    // 2. คำนวณของรางวัล
     const spins = playerData.wheelSpinCount;
-    
     let reward = null;
 
-    // เช็ค Pity
     if (spins % 30 === 0) {
-        // Guarantee Cosmetic (25% each)
         const cosPool =['art_nobita', 'art_farmer', 'ava_nobita', 'ban_nobita'];
         const pick = cosPool[Math.floor(Math.random() * cosPool.length)];
         reward = WHEEL_REWARDS.find(r => r.id === pick);
     } else if (spins % 15 === 0) {
-        // Guarantee Nobita
         reward = WHEEL_REWARDS.find(r => r.id === 'char_nobita');
     } else {
-        // Normal Roll
         let roll = Math.random() * 100;
         for (let r of WHEEL_REWARDS) {
             roll -= r.prob;
@@ -278,10 +327,30 @@ window.executeWheelSpin = function() {
             }
         }
     }
-
     if (!reward) reward = WHEEL_REWARDS[0]; // Fallback
 
-    giveWheelReward(reward);
+    // 3. เริ่ม Animation วงล้อ
+    const rIndex = WHEEL_REWARDS.findIndex(r => r.id === reward.id);
+    const wheel = document.getElementById('the-roulette-wheel');
+    const sliceDeg = 360 / WHEEL_REWARDS.length;
+    
+    // คำนวณองศาให้เข็มชี้ตรงกลางของรางวัลพอดี (บวก/ลบ แรนดอมนิดหน่อยให้ดูสมจริง)
+    const variance = (Math.random() * (sliceDeg * 0.6)) - (sliceDeg * 0.3);
+    const targetDeg = -(rIndex * sliceDeg + (sliceDeg / 2)) + variance + (360 * 8); // หมุน 8 รอบ
+
+    // ใส่เสียง Effect ตอนหมุน (ถ้ามี)
+    const spinSound = new Audio('https://files.catbox.moe/kj3jmu.wav'); // เสียงตอนการ์ดลง
+    spinSound.volume = 0.5;
+    spinSound.play().catch(()=>{});
+
+    wheel.style.transition = 'transform 4.5s cubic-bezier(0.15, 0.85, 0.15, 1)';
+    wheel.style.transform = `rotate(${targetDeg}deg)`;
+
+    // 4. รอให้หมุนเสร็จแล้วแจกของรางวัล
+    setTimeout(() => {
+        _isSpinning = false;
+        giveWheelReward(reward);
+    }, 4700);
 };
 
 function giveWheelReward(reward) {
@@ -289,6 +358,7 @@ function giveWheelReward(reward) {
     let msg = `คุณได้รับ ${reward.label}`;
     let isDupe = false;
 
+    // มอบของรางวัล
     if (reward.type === 'coins') {
         playerData.coins = (playerData.coins || 0) + reward.val;
     } else if (reward.type === 'gems') {
@@ -326,18 +396,24 @@ function giveWheelReward(reward) {
 
     saveData();
     if (typeof updateHubUI === 'function') updateHubUI();
-    renderWheelPanel();
+    renderWheelPanel(); // รีเซ็ตหน้าจอวงล้อ
+
+    // เสียงจบ
+    const winSound = new Audio('https://files.catbox.moe/mu7wrw.wav');
+    winSound.volume = 0.6;
+    winSound.play().catch(()=>{});
 
     // Show Popup
     const ov = document.createElement('div');
     ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9999;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.3s ease;';
     ov.innerHTML = `
-    <div style="background:linear-gradient(135deg,#1e1b4b,#2e1065);border:3px solid ${reward.color};border-radius:24px;padding:30px;max-width:350px;width:90%;text-align:center;box-shadow:0 0 60px ${reward.color}66;">
-        <div style="font-size:4rem;margin-bottom:10px;">${reward.icon}</div>
+    <div style="background:linear-gradient(135deg,#1e1b4b,#2e1065);border:3px solid ${reward.color};border-radius:24px;padding:30px;max-width:350px;width:90%;text-align:center;box-shadow:0 0 60px ${reward.color}66; transform:scale(0.8); animation:popIn 0.5s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        <div style="font-size:4.5rem;margin-bottom:10px;filter:drop-shadow(0 4px 10px rgba(0,0,0,0.5));">${reward.icon}</div>
         <div style="font-size:1.5rem;font-weight:900;color:${reward.color};margin-bottom:10px;">${title}</div>
-        <div style="font-size:1rem;color:white;margin-bottom:20px;line-height:1.5;">${msg}</div>
-        <button onclick="this.parentElement.parentElement.remove()" style="background:${reward.color};color:black;border:none;padding:12px 30px;border-radius:12px;font-weight:900;font-size:1.1rem;cursor:pointer;">รับรางวัล</button>
-    </div>`;
+        <div style="font-size:1.1rem;color:white;margin-bottom:25px;line-height:1.5;">${msg}</div>
+        <button onclick="this.parentElement.parentElement.remove()" style="background:${reward.color};color:black;border:none;padding:12px 30px;border-radius:12px;font-weight:900;font-size:1.1rem;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,0.5);">ยอดเยี่ยม!</button>
+    </div>
+    <style>@keyframes popIn { to { transform: scale(1); } }</style>`;
     document.body.appendChild(ov);
 }
 
@@ -348,9 +424,7 @@ function _hookWheelMechanics() {
     if (typeof window.renderCard === 'function') {
         const _origRender = window.renderCard;
         window.renderCard = function(card, inHand, displayCost, currentStats) {
-            // ถ้าเป็นการ์ดที่ Pandora ก๊อปปี้มา และไม่ได้อยู่ในมือ (คู่ต่อสู้เห็น)
             if (card && card._isPandoraActor && !inHand) {
-                // หลอกตาคู่ต่อสู้ให้เห็น Stat ปลอมที่ก๊อปมา
                 const fakeStats = currentStats ? {...currentStats} : getCharStats(card);
                 fakeStats.atk = card._fakeDisplayAtk !== undefined ? card._fakeDisplayAtk : fakeStats.atk;
                 fakeStats.hp = card._fakeDisplayHp !== undefined ? card._fakeDisplayHp : fakeStats.hp;
@@ -364,11 +438,9 @@ function _hookWheelMechanics() {
         const _origStatsW = window.getCharStats;
         window.getCharStats = function(char) {
             let stats = _origStatsW.apply(this, arguments);
-            // ค่าพลังคำนวณจริงของ Pandora คือ 8/8 เสมอ
             if (char._isPandoraActor && !char.silenced) {
                 stats.atk = 8;
                 stats.maxHp = 8;
-                // ป้องกันเลือดเกิน 8 ถ้าโดนตีไปแล้ว
                 stats.hp = Math.min(8, char.hp); 
             }
             return stats;
@@ -388,30 +460,23 @@ function _hookWheelMechanics() {
                     const mimic = deckChars[Math.floor(Math.random() * deckChars.length)];
                     card._isPandoraActor = true;
                     
-                    // เปลี่ยนรูปลักษณ์ให้เหมือนตัวจริง
                     card.name = mimic.name;
                     card.originalName = mimic.originalName || mimic.name;
                     card.art = mimic.art;
                     card.text = mimic.text;
                     
-                    // บันทึก Stat ปลอมไว้โชว์
                     card._fakeDisplayAtk = mimic.atk;
                     card._fakeDisplayHp = mimic.hp;
                     
-                    // เซ็ต Stat จริง
                     card.hp = 8;
                     card.atk = 8;
                     card.maxHp = 8;
 
                     if (typeof log === 'function') log(`🎭 [Pandora's Actor] มหาเวทแปลงกาย! คัดลอกรูปแบบของ ${mimic.name}!`, 'text-yellow-400 font-bold');
-                    
-                    // ให้ระบบรัน On Summon ของตัวที่ก๊อปปี้มาต่อ
                 } else {
-                    if (typeof log === 'function') log(`🎭 [Pandora's Actor] ไม่มี Character ในเด็คให้แปลงร่าง!`, 'text-gray-400');
+                    if (typeof log === 'function') log(`🎭[Pandora's Actor] ไม่มี Character ในเด็คให้แปลงร่าง!`, 'text-gray-400');
                 }
             }
-
-            // รันระบบเดิม (ถ้าก๊อปปี้มา ระบบจะเข้าใจว่าเป็นตัวนั้นและร่าย On Summon เอง)
             _origSummon.apply(this, arguments);
         };
     }
@@ -433,18 +498,16 @@ function _hookWheelMechanics() {
                 const tName = target.originalName || target.name;
                 const aName = attacker.originalName || attacker.name;
 
-                // Nobita Defend (30% Evade)
                 if (tName === 'Nobita' && !target.silenced) {
                     if (Math.random() < 0.3) {
                         if (typeof log === 'function') log(`👓 [Nobita] วิ่งหนีสุดชีวิต! หลบการโจมตีได้สำเร็จ!`, 'text-yellow-300 font-bold');
                         attacker.attacksLeft -= 1;
                         state.selectedCardId = null;
                         if (typeof updateUI === 'function') updateUI();
-                        return; // หลบได้
+                        return;
                     }
                 }
 
-                // Nobita Attack (30% +3 DMG หรือ 100% ถ้าใส่ Desert Eagle)
                 if (aName === 'Nobita' && !attacker.silenced) {
                     const hasEagle = attacker.items && attacker.items.some(i => i.name === 'Desert Eagle');
                     if (hasEagle || Math.random() < 0.3) {
@@ -457,11 +520,12 @@ function _hookWheelMechanics() {
 
             _origInitW.apply(this, arguments);
 
-            // Revert Nobita ATK
             if (attacker && attacker._nobitaBoost) {
                 attacker.atk -= 3;
                 attacker._nobitaBoost = false;
             }
         };
     }
-                }
+            }
+                                        
+                    
