@@ -527,5 +527,158 @@ function _hookWheelMechanics() {
         };
     }
             }
-                                        
+   // ============================================================
+// 33_fix_wheel_artstyle_bug.js — Fix Artstyle Shop buying Wheel items with Gems
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    // 1. เขียนทับระบบซื้อ Artstyle ให้บล็อก currency 'wheel'
+    window.buyUnifiedArtstyle = function(id) {
+        const cfg = ARTSTYLE_CFG[id];
+        if (!cfg) return;
+        if (!playerData.unlockedArtstyles) playerData.unlockedArtstyles =[];
+        if (playerData.unlockedArtstyles.includes(id)) return;
+
+        if (cfg.currency === 'wheel') {
+            if (typeof showToast === 'function') showToast('❌ สกินนี้หาได้จากวงล้อ Daily Wheel เท่านั้น!', '#f87171');
+            return;
+        } else if (cfg.currency === 'rod') {
+            if ((playerData.rodTokens || 0) < (cfg.shopCost || 5)) { if (typeof showToast === 'function') showToast('🎣 Rod Token ไม่พอ!', '#f87171'); return; }
+            playerData.rodTokens -= (cfg.shopCost || 5);
+        } else if (cfg.currency === 'rezero') {
+            if ((playerData.rezeroTokens || 0) < (cfg.shopCost || 5)) { if (typeof showToast === 'function') showToast('🔮 Premium Token ไม่พอ!', '#f87171'); return; }
+            playerData.rezeroTokens -= (cfg.shopCost || 5);
+        } else if (cfg.currency === 'rz_normal') {
+            if ((playerData.rzNormalTokens || 0) < (cfg.shopCost || 10)) { if (typeof showToast === 'function') showToast('🔮 Normal Token ไม่พอ!', '#f87171'); return; }
+            playerData.rzNormalTokens -= (cfg.shopCost || 10);
+        } else {
+            const cost = cfg.shopCost || 5;
+            if (typeof getTotalGems === 'function') {
+                if (getTotalGems() < cost) { if (typeof showToast === 'function') showToast('💎 Gems ไม่พอ!', '#f87171'); return; }
+                spendGems(cost);
+            } else {
+                if ((playerData.gems || 0) < cost) { if (typeof showToast === 'function') showToast('💎 Gems ไม่พอ!', '#f87171'); return; }
+                playerData.gems -= cost;
+            }
+        }
+
+        playerData.unlockedArtstyles.push(id);
+        if (typeof _applyArtstyle === 'function' && (playerData.equippedArtstyles || {})[cfg.targetCard] === id) _applyArtstyle(id);
+        if (typeof saveData === 'function') saveData(); 
+        if (typeof updateHubUI === 'function') updateHubUI(); 
+        if (typeof renderUnifiedArtstyleShop === 'function') renderUnifiedArtstyleShop();
+        if (typeof showToast === 'function') showToast(`🎨 ปลดล็อค "${cfg.label}"!`, '#4ade80');
+    };
+
+    // 2. เขียนทับหน้าร้านค้า Artstyle ให้แสดงราคาและปุ่มที่ถูกต้อง
+    window.renderUnifiedArtstyleShop = function() {
+        const allStyles = Object.assign({}, (typeof ARTSTYLE_CFG !== 'undefined' ? ARTSTYLE_CFG : {}));
+        const unlocked = playerData.unlockedArtstyles ||[];
+        const equipped = playerData.equippedArtstyles || {};
+
+        const rzPremImg = '<img src="https://file.garden/aeeLCXSsJxTPrRbp/file_00000000be28720b9c4b780acf36a0ca.png" style="width:1.2em;height:1.2em;vertical-align:-0.2em;display:inline-block;filter:drop-shadow(0 0 2px rgba(168,85,247,0.5));">';
+        const rzNormImg = '<img src="https://file.garden/aeeLCXSsJxTPrRbp/1000038309-removebg-preview.png" style="width:1.2em;height:1.2em;vertical-align:-0.2em;display:inline-block;filter:drop-shadow(0 0 2px rgba(56,189,248,0.5));">';
+
+        const rows = Object.values(allStyles).map(cfg => {
+            const isUnlocked = unlocked.includes(cfg.id);
+            const isEquipped = equipped[cfg.targetCard] === cfg.id;
+            
+            let canBuy = false;
+            let costHtml = '';
+            
+            if (cfg.currency === 'wheel') {
+                canBuy = false; // ซื้อด้วยเงินไม่ได้
+                costHtml = `<span style="color:#fbbf24">🎡 หมุนวงล้อ</span>`;
+            } else if (cfg.currency === 'rod') {
+                canBuy = (playerData.rodTokens || 0) >= (cfg.shopCost || 5);
+                costHtml = `🎣 ${cfg.shopCost || 5} Rod`;
+            } else if (cfg.currency === 'rezero') {
+                canBuy = (playerData.rezeroTokens || 0) >= (cfg.shopCost || 5);
+                costHtml = `${rzPremImg} ${cfg.shopCost || 5}`;
+            } else if (cfg.currency === 'rz_normal') {
+                canBuy = (playerData.rzNormalTokens || 0) >= (cfg.shopCost || 10);
+                costHtml = `${rzNormImg} ${cfg.shopCost || 10}`;
+            } else {
+                const cost = cfg.shopCost || 5;
+                canBuy = (typeof getTotalGems === 'function' ? getTotalGems() : (playerData.gems || 0)) >= cost;
+                costHtml = `💎 ${cost}`;
+            }
+
+            const borderClr = isEquipped ? '#fbbf24' : isUnlocked ? '#34d399' : '#374151';
+            
+            return `<div style="background:#0f172a;border:1.5px solid ${borderClr};
+                 border-radius:12px;padding:10px;display:flex;align-items:center;gap:10px;margin-bottom:7px;">
+              ${cfg.art
+                ? `<img src="${cfg.art}" style="width:52px;height:62px;object-fit:cover;border-radius:8px;border:1px solid #374151">`
+                : `<div style="width:52px;height:62px;background:#1f2937;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.4rem">${cfg.emoji||'🎨'}</div>`}
+              <div style="flex:1;min-width:0">
+                <div style="font-size:0.56rem;color:#6b7280;letter-spacing:0.4px">🎯 ${cfg.targetCard}</div>
+                <div style="font-weight:900;color:white;font-size:0.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cfg.emoji||''} ${cfg.label}</div>
+                <div style="font-size:0.6rem;margin-top:2px;color:${isEquipped?'#fbbf24':isUnlocked?'#4ade80':'#6b7280'}">
+                  ${isEquipped ? '✅ ใส่อยู่' : isUnlocked ? '🔓 ปลดล็อคแล้ว' : costHtml}
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+                ${isUnlocked
+                  ? (isEquipped
+                    ? `<button onclick="unequipArtstyle('${cfg.id}');renderUnifiedArtstyleShop()" style="background:#374151;color:#9ca3af;border:none;padding:7px 10px;border-radius:8px;font-size:0.7rem;font-weight:700;cursor:pointer;min-width:56px">✕ ถอด</button>`
+                    : `<button onclick="equipArtstyle('${cfg.id}');renderUnifiedArtstyleShop()" style="background:linear-gradient(135deg,#d97706,#92400e);color:white;border:none;padding:7px 10px;border-radius:8px;font-size:0.7rem;font-weight:700;cursor:pointer;min-width:56px">🎨 ใส่</button>`)
+                  : (cfg.currency === 'wheel'
+                    ? `<button onclick="showHubTab('wheel');document.getElementById('_artstyle-overlay').remove()" style="background:linear-gradient(135deg,#d97706,#b45309);color:white;border:none;padding:7px 10px;border-radius:8px;font-size:0.7rem;font-weight:700;cursor:pointer;min-width:56px">ไปหมุน</button>`
+                    : `<button onclick="buyUnifiedArtstyle('${cfg.id}')" ${canBuy?'':'disabled'}
+                      style="background:${canBuy?'linear-gradient(135deg,#6d28d9,#a855f7)':'#374151'};color:${canBuy?'white':'#6b7280'};border:none;padding:7px 10px;border-radius:8px;font-size:0.7rem;font-weight:700;cursor:${canBuy?'pointer':'not-allowed'};min-width:56px">
+                      ซื้อ
+                    </button>`)
+                }
+              </div>
+            </div>`;
+        }).join('');
+
+        let ov = document.getElementById('_artstyle-overlay');
+        if (!ov) {
+            ov = document.createElement('div');
+            ov.id = '_artstyle-overlay';
+            ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:3500;display:flex;align-items:center;justify-content:center;padding:12px;overflow-y:auto';
+            ov.onclick = e => { if (e.target===ov) ov.remove(); };
+            document.body.appendChild(ov);
+        }
+        
+        window.renderArtstyleShopOverlay = window.renderUnifiedArtstyleShop;
+
+        ov.innerHTML = `
+        <div style="background:linear-gradient(135deg,#0a0f1e,#0a180f);border:2.5px solid #fbbf24;
+             border-radius:24px;padding:22px 16px;max-width:440px;width:100%;
+             max-height:90vh;overflow-y:auto;box-shadow:0 0 50px rgba(251,191,36,0.2)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div>
+              <div style="font-size:1.2rem;font-weight:900;color:#fbbf24">🎨 Artstyle Shop</div>
+              <div style="font-size:0.62rem;color:#9ca3af">ปลดล็อคถาวร ไม่หมดอายุ</div>
+            </div>
+            <div style="display:flex;gap:4px">
+              <div style="background:#1f2937;border:1px solid #38bdf8;border-radius:8px;padding:4px 6px;text-align:center">
+                <div style="font-size:0.4rem;color:#9ca3af">Normal</div>
+                <div style="font-size:0.7rem;font-weight:900;color:#38bdf8">${rzNormImg} ${playerData.rzNormalTokens || 0}</div>
+              </div>
+              <div style="background:#1f2937;border:1px solid #c084fc;border-radius:8px;padding:4px 6px;text-align:center">
+                <div style="font-size:0.4rem;color:#9ca3af">Premium</div>
+                <div style="font-size:0.7rem;font-weight:900;color:#c084fc">${rzPremImg} ${playerData.rezeroTokens || 0}</div>
+              </div>
+              <div style="background:#1f2937;border:1px solid #fcd34d;border-radius:8px;padding:4px 6px;text-align:center">
+                <div style="font-size:0.4rem;color:#9ca3af">Rod</div>
+                <div style="font-size:0.7rem;font-weight:900;color:#fcd34d">🎣 ${playerData.rodTokens || 0}</div>
+              </div>
+              <div style="background:#1f2937;border:1px solid #38bdf8;border-radius:8px;padding:4px 6px;text-align:center">
+                <div style="font-size:0.4rem;color:#9ca3af">Gems</div>
+                <div style="font-size:0.7rem;font-weight:900;color:#38bdf8">💎 ${typeof getTotalGems==='function'?getTotalGems():(playerData.gems||0)}</div>
+              </div>
+            </div>
+          </div>
+          <div>${rows}</div>
+          <button onclick="document.getElementById('_artstyle-overlay').remove()"
+            style="width:100%;margin-top:14px;background:#374151;color:#9ca3af;border:none;
+                   padding:11px;border-radius:12px;font-weight:700;font-size:0.9rem;cursor:pointer">✕ ปิด</button>
+        </div>`;
+    };
+});                                     
                     
