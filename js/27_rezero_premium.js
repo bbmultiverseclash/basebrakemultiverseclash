@@ -2688,7 +2688,7 @@ document.addEventListener('DOMContentLoaded', () => {
             name: 'Subaru v2', type: 'Character', cost: 4, atk: 1, hp: 1, maxHp: 1,
             text: 'On Death: ได้รับ +1 ATK / +1 HP ถาวร จากนั้นกลับขึ้นมือด้วย Cost 0',
             color: 'bg-purple-900', maxAttacks: 1,
-            art: 'https://images5.alphacoders.com/949/thumb-440-949062.webp', _theme: 'isekai_adventure'
+            art: 'https://file.garden/aeeLCXSsJxTPrRbp/3a2824ffd52f9b7d616e804887817289.jpg'
         },
         'Ram (The Awakened Oni Goddess)': {
             name: 'Ram (The Awakened Oni Goddess)', type: 'Character', cost: 9, atk: 4, hp: 5, maxHp: 5,
