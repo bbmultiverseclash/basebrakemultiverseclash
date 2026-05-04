@@ -67,6 +67,35 @@ document.addEventListener('DOMContentLoaded', () => {
             name: 'Defend rune - Aegis rune', type: 'Item', cost: 3,
             text: 'ใส่ 1 ใบ: +4 HP | 2 ใบ: +9 HP, +3 ATK | 3 ใบขึ้นไป: +20 HP, +8 ATK',
             color: 'bg-blue-700', requiresTarget: true, shopOnly: true, rarity: 'Epic', _theme: 'mythology'
+        },
+        'Emilia v2': {
+            name: 'Emilia v2', type: 'Character', cost: 9, atk: 6, hp: 6, maxHp: 6,
+            text: 'On summon: แช่แข็งศัตรูทุกตัว 1 เทิร์น (ถ้าแข็งอยู่แล้ว +1 เทิร์นและโดน 3 ดาเมจ) | Ongoing: มี Puck ในสนาม Puck +4 ATK, ถ้ามี Subaru จะถูกเป็นเป้าหมายสุดท้าย | จบเทิร์น: 50% ได้รับเวท Al Huma',
+            color: 'bg-cyan-700', maxAttacks: 1, shopOnly: true, rarity: 'Mythic',
+            art: 'https://file.garden/aeeLCXSsJxTPrRbp/506a74b335359dddb477cf161947bcf0.jpg', _theme: 'isekai_adventure'
+        },
+        'Al Huma': {
+            name: 'Al Huma', type: 'Spell', cost: 5,
+            text: 'ทำ 3 ดาเมจใส่ 2 เป้าหมายและ Freeze 1 เทิร์น (ถ้าเป้าหมาย Freeze อยู่แล้ว ทำ 7 ดาเมจและ +1 เทิร์น)',
+            color: 'bg-sky-400', requiresTarget: false, shopOnly: true, _theme: 'isekai_adventure'
+        },
+        'Soldier - SEAL Marshal': {
+            name: 'Soldier - SEAL Marshal', type: 'Character', cost: 3, atk: 2, hp: 2, maxHp: 2,
+            text: 'On reveal: สุ่ม Equip 1 item จากสุสานของเรา (ถ้าไม่มีสุ่มจาก database) | On dead: ทำ 5 ดาเมจใส่ศัตรูที่ cost ต่ำสุด',
+            color: 'bg-slate-800', maxAttacks: 1, shopOnly: true, rarity: 'Mythic',
+            art: 'https://i.pinimg.com/736x/87/da/ff/87daffe927f67866d98c25dbf75841ed.jpg', _theme: 'humanity'
+        },
+        'Fairy - Jade Empress': {
+            name: 'Fairy - Jade Empress', type: 'Character', cost: 10, atk: 2, hp: 10, maxHp: 10,
+            text: 'On summon: Heal ทีมจนเต็มและล้าง CC ทั้งหมด | Ongoing: เมื่อยูนิตทีมเราโดนดาเมจ -> Heal 5 HP | On attack: ถ้าฆ่าได้ +2 Max HP ให้ทีม | On dead: Heal Base 4 HP',
+            color: 'bg-emerald-600', maxAttacks: 1, shopOnly: true, rarity: 'Mythic',
+            art: 'https://i.pinimg.com/736x/55/0c/fc/550cfca7f884f1837fc9a5ff6b986dc5.jpg', _theme: 'mythology'
+        },
+        'Grizzly Bear - Mountain King': {
+            name: 'Grizzly Bear - Mountain King', type: 'Character', cost: 7, atk: 7, hp: 7, maxHp: 7,
+            text: 'On reveal: Draw 5 cards | On get attack: 50% ลดดาเมจเหลือ 1 (Max 2 ครั้ง/เทิร์น) | On attack: 50% โอกาสทำดาเมจ x2',
+            color: 'bg-amber-800', maxAttacks: 1, shopOnly: true, rarity: 'Mythic',
+            art: 'https://img.freepik.com/premium-photo/fantasy-art-giant-bear-nature_421632-1563.jpg', _theme: 'animal_kingdom'
         }
     };
 
@@ -110,6 +139,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 baseCard: 'Defend Rune|mythology',
                 materials:[{name: 'Defend Rune', theme: 'mythology', count: 19}, {name: 'Attack Rune', theme: 'mythology', count: 10}],
                 gems: 15, coins: 1500, normalScrolls: 10, result: 'Defend rune - Aegis rune|mythology'
+            },
+            'Emilia v2': {
+                baseCard: 'Emilia|isekai_adventure',
+                materials:[{name: 'Emilia', theme: 'isekai_adventure', count: 4}, {name: 'Subaru', theme: 'isekai_adventure', count: 10}],
+                gems: 10, coins: 3000, normalScrolls: 25, result: 'Emilia v2|isekai_adventure'
+            },
+            'Soldier - SEAL Marshal': {
+                baseCard: 'Soldier|humanity',
+                materials:[{name: 'Soldier', theme: 'humanity', count: 29}, {name: 'Desert Eagle', theme: 'humanity', count: 10}, {name: 'Exo Skeleton Suit', theme: 'humanity', count: 10}],
+                gems: 15, coins: 0, normalScrolls: 5, result: 'Soldier - SEAL Marshal|humanity'
+            },
+            'Fairy - Jade Empress': {
+                baseCard: 'Fairy|mythology',
+                materials:[{name: 'Fairy', theme: 'mythology', count: 9}, {name: 'Nature Realm Wand', theme: 'mythology', count: 10}, {name: 'Apple', theme: 'animal_kingdom', count: 10}],
+                gems: 30, coins: 10000, normalScrolls: 30, result: 'Fairy - Jade Empress|mythology'
+            },
+            'Grizzly Bear - Mountain King': {
+                baseCard: 'Grizzly Bear|animal_kingdom',
+                materials:[{name: 'Grizzly Bear', theme: 'animal_kingdom', count: 9}, {name: 'Apple', theme: 'animal_kingdom', count: 10}, {name: 'Wild Kingdom', theme: 'animal_kingdom', count: 10}],
+                gems: 0, coins: 1500, normalScrolls: 15, result: 'Grizzly Bear - Mountain King|animal_kingdom'
             }
         });
     }
@@ -117,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 4. ระบบ Redeem Code
     if (typeof REDEEM_CODES !== 'undefined') {
         REDEEM_CODES['FREEEVOLE'] = { normalScrolls: 25, label: '📜 25 Normal Scrolls', oneTime: true };
+        REDEEM_CODES['FREEENCHANCE'] = { normalScrolls: 25, bossKeys: 25, label: '📜 25 Normal Scrolls & 25 Boss Keys', oneTime: true };
     }
 
     if (typeof window.redeemCode === 'function') {
@@ -131,12 +181,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (msg) { msg.style.color='#f87171'; msg.textContent='❌ โค้ดนี้ใช้ไปแล้ว'; } return;
                 }
                 playerData.normalScrolls = (playerData.normalScrolls || 0) + reward.normalScrolls;
+                if (reward.bossKeys) {
+                    playerData.bossKeys = (playerData.bossKeys || 0) + reward.bossKeys;
+                }
                 if (typeof markCodeUsed === 'function') markCodeUsed(raw);
                 if (typeof saveData === 'function') saveData();
                 if (typeof updateHubUI === 'function') updateHubUI();
                 
                 if (msg) { msg.style.color='#fbbf24'; msg.textContent=`🎉 ได้รับ ${reward.label}!`; }
-                if (typeof showToast === 'function') showToast(`🎁 รับ ${reward.normalScrolls} Normal Scrolls สำเร็จ!`, '#fbbf24');
+                if (typeof showToast === 'function') showToast(`🎁 รับ ${reward.label} สำเร็จ!`, '#fbbf24');
                 document.getElementById('redeem-input').value = '';
                 return;
             }
@@ -185,20 +238,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         window.confirmEnhance = function(recipeKey) {
             const recipe = ENHANCE_RECIPES[recipeKey];
+            
+            // 1. หักการ์ดหลัก
             playerData.collection[recipe.baseCard]--;
             if (playerData.collection[recipe.baseCard] <= 0) delete playerData.collection[recipe.baseCard];
+            
+            // 2. วนลูปหักวัตถุดิบทั้งหมด
             recipe.materials.forEach(m => {
                 const key = `${m.name}|${m.theme}`;
                 playerData.collection[key] -= m.count;
                 if (playerData.collection[key] <= 0) delete playerData.collection[key];
             });
+            
+            // 3. หักเงินและเพชร
             if (recipe.coins) playerData.coins -= recipe.coins;
             if (recipe.gems) playerData.gems -= recipe.gems;
             if (recipe.rzNormalTokens) playerData.rzNormalTokens -= recipe.rzNormalTokens;
             if (recipe.normalScrolls) playerData.normalScrolls -= recipe.normalScrolls;
-
+            
+            // 4. มอบการ์ดใหม่
             playerData.collection[recipe.result] = (playerData.collection[recipe.result] || 0) + 1;
-
+            
             if (typeof saveData === 'function') saveData();
             if (typeof updateHubUI === 'function') updateHubUI();
             if (typeof renderCollectionPanel === 'function') renderCollectionPanel();
@@ -279,6 +339,68 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
+            if (eff === 'Emilia v2' && !card.silenced) {
+                if (typeof log === 'function') log(`❄️ [Emilia] พายุหิมะนิรันดร์! แช่แข็งศัตรูทุกตัว!`, 'text-sky-300 font-bold');
+                opp.field.forEach(c => {
+                    if (!c.tossakanImmune && !hasNatureImmune(oppKey)) {
+                        if (c.status.includes('Freeze')) {
+                            c.freezeTurns = (c.freezeTurns || 0) + 2;
+                            c.hp -= 3;
+                            if (typeof log === 'function') log(`❄️ ${c.name} ถูกแช่แข็งซ้ำ! +1 เทิร์น และโดน 3 ดาเมจ!`, 'text-sky-400');
+                        } else {
+                            c.status.push('Freeze');
+                            c.freezeTurns = 2;
+                        }
+                    }
+                });
+                if (typeof checkDeath === 'function') checkDeath(oppKey);
+            }
+
+            if (eff === 'Soldier - SEAL Marshal' && !card.silenced) {
+                const items = p.graveyard.filter(c => c.type === 'Item');
+                if (items.length > 0) {
+                    const rand = items[Math.floor(Math.random() * items.length)];
+                    const idx = p.graveyard.findIndex(c => c.id === rand.id);
+                    const item = p.graveyard.splice(idx, 1)[0];
+                    card.items.push(item);
+                    if (typeof log === 'function') log(`🎖️ [SEAL Marshal] สวมใส่ ${item.name} จากสุสาน!`, 'text-amber-300 font-bold');
+                } else {
+                    const allItems =[];
+                    Object.keys(CardSets).forEach(th => {
+                        Object.keys(CardSets[th]).forEach(k => {
+                            if (CardSets[th][k].type === 'Item' && !CardSets[th][k].shopOnly) {
+                                allItems.push({key: k, theme: th});
+                            }
+                        });
+                    });
+                    if (allItems.length > 0) {
+                        const randItem = allItems[Math.floor(Math.random() * allItems.length)];
+                        const itemCard = typeof createCardInstance === 'function' ? createCardInstance(randItem.key, randItem.theme) : null;
+                        if (itemCard) {
+                            card.items.push(itemCard);
+                            if (typeof log === 'function') log(`🎖️[SEAL Marshal] สุ่มสวมใส่ ${itemCard.name} สำเร็จ!`, 'text-amber-300 font-bold');
+                        }
+                    }
+                }
+            }
+
+            if (eff === 'Fairy - Jade Empress' && !card.silenced) {
+                if (typeof log === 'function') log(`🧚 [Jade Empress] แสงสว่างแห่งชีวิต! Heal เต็มและล้าง CC ทีมเราทั้งหมด!`, 'text-emerald-400 font-bold');
+                p.field.forEach(c => {
+                    c.hp = (typeof getCharStats === 'function') ? getCharStats(c).maxHp : c.maxHp;
+                    c.status = c.status.filter(s => !['Burn', 'Bleed', 'Paralyze', 'Freeze', 'Poison'].includes(s));
+                    c.burnTurns = 0;
+                    c.shalltearBleedTurns = 0;
+                    c.paralyzeTurns = 0;
+                    c.freezeTurns = 0;
+                });
+            }
+
+            if (eff === 'Grizzly Bear - Mountain King' && !card.silenced) {
+                if (typeof log === 'function') log(`🐻 [Mountain King] เสียงคำรามก้องภูเขา! จั่ว 5 ใบ!`, 'text-amber-500 font-bold');
+                if (typeof drawCard === 'function') drawCard(pk, 5);
+            }
+
             _origSummon.apply(this, arguments);
         };
     }
@@ -315,6 +437,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (typeof checkWinCondition === 'function') checkWinCondition();
                     }
                 }
+
+                if (eff === 'Emilia v2' && !c.silenced && getCharStats(c).hp > 0) {
+                    if (Math.random() < 0.5) {
+                        const spell = typeof createCardInstance === 'function' ? createCardInstance('Al Huma', 'isekai_adventure') : null;
+                        if (spell) {
+                            p.hand.push(spell);
+                            if (typeof log === 'function') log(`❄️[Emilia v2] สร้างเวท Al Huma ขึ้นมือ!`, 'text-sky-300 font-bold');
+                        }
+                    }
+                }
             });
             if (typeof checkDeath === 'function') checkDeath(pk);
         };
@@ -344,7 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const spell = typeof createCardInstance === 'function' ? createCardInstance('Necronomicon', 'humanity') : null;
                         if (spell) {
                             p.hand.push(spell);
-                            if (typeof log === 'function') log(`🐙 [Lovecraft Death] ทิ้งคัมภีร์ Necronomicon ไว้บนมือคุณ!`, 'text-purple-400 font-bold');
+                            if (typeof log === 'function') log(`🐙[Lovecraft Death] ทิ้งคัมภีร์ Necronomicon ไว้บนมือคุณ!`, 'text-purple-400 font-bold');
                         }
                     }
 
@@ -370,21 +502,41 @@ document.addEventListener('DOMContentLoaded', () => {
                         p.cost += 3;
                         if (typeof log === 'function') log(`🗡️[Caesar Death] ได้รับ 3 Cost!`, 'text-amber-400 font-bold');
                     }
+
+                    if (effName === 'Soldier - SEAL Marshal') {
+                        const enemies = state.players[oppKey].field.filter(ec => getCharStats(ec).hp > 0);
+                        if (enemies.length > 0) {
+                            enemies.sort((a, b) => (a.cost || 0) - (b.cost || 0));
+                            const lowestCost = enemies[0].cost || 0;
+                            const lowestEnemies = enemies.filter(ec => (ec.cost || 0) === lowestCost);
+                            const t = lowestEnemies[Math.floor(Math.random() * lowestEnemies.length)];
+                            t.hp -= 5;
+                            if (typeof log === 'function') log(`🎖️[SEAL Marshal Death] ปลิดชีพเป้าหมายอ่อนแอ! 5 ดาเมจใส่ ${t.name}!`, 'text-red-400 font-bold');
+                        }
+                    }
+
+                    if (effName === 'Fairy - Jade Empress') {
+                        p.hp = Math.min(20, p.hp + 4);
+                        if (typeof log === 'function') log(`🧚[Jade Empress Death] ละอองแสงสุดท้าย... Base +4 HP!`, 'text-emerald-300 font-bold');
+                    }
                 }
             });
             _origDeath.apply(this, arguments);
         };
     }
 
-    // ── executeNonTargetAction (Necronomicon) ──
+    // ── executeNonTargetAction (Necronomicon, Al Huma) ──
     if (typeof window.executeNonTargetAction === 'function') {
         const _origExec = window.executeNonTargetAction;
         window.executeNonTargetAction = function(card, pk) {
+            const p = state.players[pk];
+            const oppKey = pk === 'player' ? 'ai' : 'player';
+            const opp = state.players[oppKey];
+
             if (card.name === 'Necronomicon') {
                 const gods =['Azathoth', 'Nyarlathotep', 'Yog-Sothoth'];
                 const pick = gods[Math.floor(Math.random() * gods.length)];
                 const godCard = typeof createCardInstance === 'function' ? createCardInstance(pick, 'humanity') : null;
-                const p = state.players[pk];
                 
                 if (godCard && p.field.length < (typeof getMaxFieldSlots==='function'?getMaxFieldSlots(pk):6)) {
                     godCard.attacksLeft = godCard.maxAttacks || 1;
@@ -397,54 +549,180 @@ document.addEventListener('DOMContentLoaded', () => {
                 p.graveyard.push(card);
                 return;
             }
+            
+            if (card.name === 'Al Huma') {
+                const enemies = opp.field.filter(c => getCharStats(c).hp > 0 && !c.isSpellImmune);
+                const targets = [...enemies].sort(() => Math.random() - 0.5).slice(0, 2);
+                if (targets.length > 0) {
+                    targets.forEach(t => {
+                        if (t.status.includes('Freeze')) {
+                            t.hp -= 7; // 3 + 4
+                            t.freezeTurns = (t.freezeTurns || 0) + 2;
+                            if (typeof log === 'function') log(`❄️ [Al Huma] คริติคอลหิมะ! ${t.name} รับ 7 ดาเมจ และถูกแช่แข็งซ้ำ!`, 'text-sky-400 font-bold');
+                        } else {
+                            t.hp -= 3;
+                            if (!t.tossakanImmune && !hasNatureImmune(oppKey)) {
+                                t.status.push('Freeze');
+                                t.freezeTurns = 2;
+                            }
+                            if (typeof log === 'function') log(`❄️ [Al Huma] 3 ดาเมจ และแช่แข็ง ${t.name}!`, 'text-sky-300 font-bold');
+                        }
+                    });
+                    if (typeof checkDeath === 'function') checkDeath(oppKey);
+                } else {
+                    if (typeof log === 'function') log(`❄️[Al Huma] ไม่มีเป้าหมายให้แช่แข็ง`, 'text-gray-500');
+                }
+                p.graveyard.push(card);
+                return;
+            }
+            
             _origExec.apply(this, arguments);
         };
     }
 
-    // ── initiateAttack (Elephant 50% dmg, Caesar on Kill) ──
+    // ── initiateAttack (Damage Intercept, On Attack Kills, Evade) ──
     if (typeof window.initiateAttack === 'function') {
-        const _origAtk = window.initiateAttack;
+        const _origAtk2 = window.initiateAttack;
         window.initiateAttack = function(atkId, tgtId, isBase) {
-            if (typeof state === 'undefined' || isBase) return _origAtk.apply(this, arguments);
+            if (typeof state === 'undefined' || isBase) return _origAtk2.apply(this, arguments);
 
             const pk = state.currentTurn;
             const oppKey = pk === 'player' ? 'ai' : 'player';
             const attacker = state.players[pk].field.find(c => c.id === atkId);
-            const target = state.players[oppKey].field.find(c => c.id === tgtId);
+            let target = state.players[oppKey].field.find(c => c.id === tgtId);
 
             if (attacker && target) {
                 const aName = attacker.originalName || attacker.name;
+                const tName = target.originalName || target.name;
                 
+                if (tName === 'Emilia v2') {
+                    const hasSubaru = state.players[oppKey].field.some(c => {
+                        const n = c.originalName || c.name;
+                        return (n === 'Subaru' || n === 'Subaru v2') && getCharStats(c).hp > 0;
+                    });
+                    const others = state.players[oppKey].field.filter(c => c.id !== target.id && getCharStats(c).hp > 0);
+                    if (hasSubaru && others.length > 0) {
+                        if (typeof log === 'function') log("❄️ [Emilia v2] เป็นเป้าหมายสุดท้าย! ต้องกำจัด Subaru ก่อน", "text-sky-300");
+                        attacker.attacksLeft += 1;
+                        state.selectedCardId = null;
+                        if(typeof updateUI === 'function') updateUI();
+                        return;
+                    }
+                }
+
+                if (aName === 'Grizzly Bear - Mountain King' && !attacker.silenced && Math.random() < 0.5) {
+                    attacker.atk *= 2;
+                    attacker._grizzlyBoost = true;
+                    if (typeof log === 'function') log(`🐻 [Mountain King] พลังหมีภูเขา! ดาเมจ x2!`, 'text-amber-400 font-bold');
+                }
+
                 if (aName === 'Elephant - Musth state' && !attacker.silenced && Math.random() < 0.5) {
                     attacker.atk += 5;
                     attacker._elephantBoost = true;
                     if (typeof log === 'function') log(`🐘 [Elephant] Musth State! กระทืบแรงขึ้น +5 ดาเมจ!`, 'text-stone-400 font-bold');
                 }
             }
-            
-            _origAtk.apply(this, arguments);
 
+            // Snapshot HP for damage interception (Fairy - Jade Empress, Grizzly Bear)
+            let snapshot = [];
+            state.players[oppKey].field.forEach(c => {
+                snapshot.push({ id: c.id, hp: c.hp, maxHp: c.maxHp });
+            });
+
+            _origAtk2.apply(this, arguments);
+
+            if (attacker && attacker._grizzlyBoost) {
+                attacker.atk = Math.floor(attacker.atk / 2);
+                attacker._grizzlyBoost = false;
+            }
             if (attacker && attacker._elephantBoost) {
                 attacker.atk -= 5;
                 attacker._elephantBoost = false;
             }
 
-            // Caesar On Kill
-            if (attacker && !attacker.silenced && target) {
+            let anyAllyTookDmg = false;
+            snapshot.forEach(snap => {
+                let card = null;
+                let currentZone = 'field';
+['field', 'graveyard', 'spaceZone', 'hand'].forEach(z => {
+                    const found = state.players[oppKey][z].find(c => c.id === snap.id);
+                    if (found) { card = found; currentZone = z; }
+                });
+
+                if (card) {
+                    let dmgTaken = snap.hp - card.hp;
+                    if (dmgTaken > 0) {
+                        const cName = card.originalName || card.name;
+                        
+                        if (cName === 'Grizzly Bear - Mountain King' && !card.silenced) {
+                            if (card.grizzlyDmgReduceTurn !== state.totalTurns) {
+                                card.grizzlyDmgReduceTurn = state.totalTurns;
+                                card.grizzlyDmgReduceCount = 0;
+                            }
+                            if (card.grizzlyDmgReduceCount < 2 && Math.random() < 0.5) {
+                                dmgTaken = 1;
+                                card.grizzlyDmgReduceCount++;
+                                card.hp = snap.hp - dmgTaken;
+                                if (typeof log === 'function') log(`🐻 [Mountain King] หนังหนา! ลดดาเมจเหลือ 1!`, 'text-amber-400 font-bold');
+                                
+                                if (card.hp > 0 && currentZone === 'graveyard') {
+                                    state.players[oppKey].graveyard = state.players[oppKey].graveyard.filter(c => c.id !== card.id);
+                                    state.players[oppKey].field.push(card);
+                                    card.isDyingProcessing = false;
+                                }
+                            }
+                        }
+
+                        if (dmgTaken > 0) anyAllyTookDmg = true;
+                    }
+                }
+            });
+
+            // Fairy - Jade Empress healing
+            if (anyAllyTookDmg) {
+                const jadeEmpresses = state.players[oppKey].field.filter(c => {
+                    const n = c.originalName || c.name;
+                    return n === 'Fairy - Jade Empress' && c.hp > 0 && !c.silenced;
+                });
+                if (jadeEmpresses.length > 0) {
+                    state.players[oppKey].field.forEach(c => {
+                        const snap = snapshot.find(s => s.id === c.id);
+                        if (snap && c.hp < c.maxHp && c.hp > 0 && snap.hp > c.hp) {
+                            c.hp = Math.min(c.maxHp, c.hp + 5);
+                            if (typeof log === 'function') log(`🧚[Jade Empress] ละอองแสงฟื้นฟู! ${c.name} +5 HP!`, 'text-emerald-300 font-bold');
+                        }
+                    });
+                }
+            }
+
+            // On Attack Kills (Caesar, Jade Empress)
+            if (attacker && target) {
                 const aName = attacker.originalName || attacker.name;
-                if (aName === 'Julius Caesar - Conquest of Gaul') {
-                    const targetStillAlive = state.players[oppKey].field.some(c => c.id === tgtId);
-                    if (!targetStillAlive) {
+                const targetDied = !state.players[oppKey].field.some(c => c.id === target.id) || target.hp <= 0;
+                
+                if (targetDied) {
+                    if (aName === 'Fairy - Jade Empress' && !attacker.silenced) {
+                        state.players[pk].field.forEach(c => {
+                            if (c.hp > 0) {
+                                c.maxHp += 2;
+                                c.hp += 2;
+                            }
+                        });
+                        if (typeof log === 'function') log(`🧚 [Jade Empress] สังหารศัตรู! พรแห่งสวรรค์ +2 Max HP ให้ทีม!`, 'text-emerald-400 font-bold');
+                    }
+                    
+                    if (aName === 'Julius Caesar - Conquest of Gaul' && !attacker.silenced) {
                         const otherEnemies = state.players[oppKey].field.filter(ec => getCharStats(ec).hp > 0);
                         if (otherEnemies.length > 0) {
                             const t = otherEnemies[Math.floor(Math.random() * otherEnemies.length)];
                             t.hp -= 4;
                             if (typeof log === 'function') log(`🗡️ [Caesar] สังหารสำเร็จ! โจมตีต่อเนื่อง 4 ดาเมจใส่ ${t.name}!`, 'text-amber-400 font-bold');
-                            if (typeof checkDeath === 'function') checkDeath(oppKey);
                         }
                     }
                 }
             }
+
+            if (typeof checkDeath === 'function') checkDeath(oppKey);
         };
     }
 
@@ -458,7 +736,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // ── getCharStats (Runes & Elephant Reduction) ──
+    // ── getCharStats (Runes, Elephant Reduction, Puck boost for Emilia) ──
     if (typeof window.getCharStats === 'function') {
         const _origStats = window.getCharStats;
         window.getCharStats = function(char) {
@@ -466,8 +744,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (char.silenced) return stats;
 
             const effName = char.originalName || char.name;
+            const ownerKey = state.players.player.field.some(c => c.id === char.id) ? 'player' : 'ai';
+            const ownField = state.players[ownerKey].field;
+
             if (effName === 'Elephant - Musth state') {
                 stats.damageMultiplier = (stats.damageMultiplier || 1) * 0.7;
+            }
+            
+            if (effName === 'Puck') {
+                const hasEmiliaV2 = ownField.some(c => (c.originalName || c.name) === 'Emilia v2' && c.hp > 0);
+                if (hasEmiliaV2) stats.atk += 4;
             }
 
             if (char.items && typeof isItemSuppressed === 'function' && !isItemSuppressed()) {
@@ -570,8 +856,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyReinhardImmunity(fn, context) {
         return function(...args) {
             if (typeof state === 'undefined') return fn.apply(this, args);
-            let preHp = {};
-            ['player', 'ai'].forEach(pk => {
+            let preHp = {};['player', 'ai'].forEach(pk => {
                 state.players[pk].field.forEach(c => { preHp[c.id] = c.hp; });
             });
             const result = fn.apply(this, args);
